@@ -42,6 +42,7 @@
 #include "itkImageFileWriter.h"
 #include "itkNumericSeriesFileNames.h"
 #include "itkGE5ImageIO.h"
+#include "string"
 
 // Software Guide : EndCodeSnippet
 
@@ -100,14 +101,17 @@ int main( int argc, char ** argv )
 
 
   for(int i = 1; i < argc - 1; i++){
-      if(argv[i] == "-f"){
+      
+      if(string(argv[i]).compare("-f") == 0){
           firstSliceName = string(argv[i+1]);
-      }else if(argv[i] == "-d"){
+      }else if(string(argv[i]).compare("-d") == 0){
           rootDir = string(argv[i+1]);
-      }else if(argv[i] == "-o"){
+      }else if(string(argv[i]).compare("-o") == 0){
           outputFileName = string(argv[i+1]);
       }
   }
+
+  cout<<"firstSliceName= " + firstSliceName<<endl;
 
   if(firstSliceName == ""){
       help(argv[0]);
