@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 2.8)
 
 project(SPINEUtilsCXX)
 
+
+FIND_PACKAGE(VTK REQUIRED)
+include(${VTK_USE_FILE})
+
 find_package(ITK REQUIRED)
 include(${ITK_USE_FILE})
 
@@ -9,19 +13,33 @@ include(${ITK_USE_FILE})
 #include(${GDCM_USE_FILE})
 
 
-#link_directories(/home/prieto/NetBeansProjects/install/lib)
-
-add_executable(ImageSeriesReadWrite MACOSX_BUNDLE appli/ImageSeriesReadWrite.cxx)
-target_link_libraries(ImageSeriesReadWrite ${ITK_LIBRARIES})
-
-add_executable(ImageSeriesReadWriteDICOM MACOSX_BUNDLE appli/ImageSeriesReadWriteDICOM.cxx)
-target_link_libraries(ImageSeriesReadWriteDICOM ${ITK_LIBRARIES})
+include_directories(/usr/local/include/)
+set(XERCES_LIBRARIES xerces-c-3.1)
 
 
-#include_directories(/usr/include/xercesc/)
-#link_directories(/usr/lib/)
-#set(XERCES_LIBRARIES xerces-c-3.1)
-#add_executable(SimpleRegionGrowingSegmentation MACOSX_BUNDLE appli/SimpleRegionGrowingSegmentation.cxx)
-#target_link_libraries(SimpleRegionGrowingSegmentation ${ITK_LIBRARIES} ${XERCES_LIBRARIES})
+INCLUDE(cmake/UserMacros.cmake)
 
+CREA_CPDIR(${PROJECT_SOURCE_DIR}/data ${PROJECT_BINARY_DIR}/data)
+
+message(${PROJECT_SOURCE_DIR}/lib/SPINEToolsIO)
+
+INCLUDE_DIRECTORIES(
+	${PROJECT_SOURCE_DIR}/lib/SPINEToolsIO
+        ${PROJECT_SOURCE_DIR}/lib/SPINEToolsInterpolation
+)
+
+LINK_DIRECTORIES(
+        ${PROJECT_BINARY_DIR}/lib/
+)
+
+
+
+SUBDIRS(lib)
+SUBDIRS(appli)
+
+
+OPTION(BUILD_TEST "Build test ?" OFF)
+IF(BUILD_TEST)
+	SUBDIRS(test)
+ENDIF(BUILD_TEST)
 

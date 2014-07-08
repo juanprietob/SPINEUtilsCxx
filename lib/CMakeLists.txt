@@ -1,0 +1,2 @@
+SUBDIRS(SPINEToolsIO)
+SUBDIRS(SPINEToolsInterpolation)
