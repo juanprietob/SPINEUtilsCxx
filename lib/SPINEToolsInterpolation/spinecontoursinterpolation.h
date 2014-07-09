@@ -17,9 +17,14 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
   vtkTypeMacro(SPINEContoursInterpolation,vtkPolyDataAlgorithm);
 
-    vtkSetMacro(MaximumCurveError, double);
-    vtkGetMacro(MaximumCurveError, double);
+    vtkSetMacro(MaximumCurveError, double)
+    vtkGetMacro(MaximumCurveError, double)
 
+    vtkSetMacro(ContourLength, double)
+    vtkGetMacro(ContourLength, double)
+
+    vtkSetMacro(NumberOfPoints, int)
+    vtkGetMacro(NumberOfPoints, int)
 protected:
   SPINEContoursInterpolation();
  ~SPINEContoursInterpolation();
@@ -36,6 +41,8 @@ private:
   void getInterpolatedPoint(const double* p1, const double* p2, const double* p3, const double* p4, double* p, double t);
 
   double MaximumCurveError;
+  double ContourLength;
+  int NumberOfPoints;
 };
 
         #endif

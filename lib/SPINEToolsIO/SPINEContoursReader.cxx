@@ -164,7 +164,7 @@ int SPINEContoursReader::RequestData(
                     vtkcontour->SetPoints(vtkpoints);
                     vtkcontour->SetLines(vtkcellarray);
 
-                    cout<<vtkcontour;
+                    //cout<<vtkcontour;
 
                     m_Output->AddItem(vtkcontour);
                 }

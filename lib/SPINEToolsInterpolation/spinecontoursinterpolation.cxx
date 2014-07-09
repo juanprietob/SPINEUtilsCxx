@@ -27,10 +27,13 @@
 
 vtkStandardNewMacro(SPINEContoursInterpolation);
 
+using namespace std;
 
 SPINEContoursInterpolation::SPINEContoursInterpolation()
 {
-    this->MaximumCurveError = 0.01;
+    this->MaximumCurveError = 0.1;
+    this->ContourLength = 0;
+    this->NumberOfPoints = -1;
 }
 
 //--------------------------------------------------------------------------
@@ -75,10 +78,6 @@ int SPINEContoursInterpolation::RequestData(
       vtkErrorMacro("Cannot interpolate line. Contour points < 3")
   }
 
-  if(contourpoints->GetNumberOfPoints() == 3){
-      cout<<"deb"<<endl;
-  }
-
   for(int i = 0; i < contourpoints->GetNumberOfPoints(); i++){
 
       double p1[3];
@@ -103,31 +102,39 @@ int SPINEContoursInterpolation::RequestData(
       vtkMath::MultiplyScalar(p3, 1/2.0);
       vtkMath::Subtract(p4, p3, p3);
 
-      double stept = 2.0;
-      double distance = vtkMath::Distance2BetweenPoints(p1, p4);
+      double stept = 0;
+      double distance = 0;
 
       do{
-          stept /= 2.0;
-          this->getInterpolatedPoint(p1, p2, p3, p4, pinter, stept);
-          distance = vtkMath::Distance2BetweenPoints(p1, pinter);
+          stept += 1;
+          this->getInterpolatedPoint(p1, p2, p3, p4, pinter, 1/stept);
+          distance = sqrt(vtkMath::Distance2BetweenPoints(p1, pinter));
       }while(distance > this->MaximumCurveError);
 
-      for(double t = 0; t < 1.0; t+=stept){
+
+
+      for(double t = 0; t < 1.0; t+=1/stept){
           this->getInterpolatedPoint(p1, p2, p3, p4, pinter, t);
           outpoints->InsertNextPoint(pinter[0], pinter[1], pinter[2]);
       }
-
   }
 
   vtkSmartPointer<vtkCellArray> outcellarray = vtkSmartPointer<vtkCellArray>::New();
+  this->ContourLength = 0;
   for(unsigned i = 0; i < outpoints->GetNumberOfPoints(); i++){
       vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
       line->GetPointIds()->SetId(0, i);
+
+      double p0[3], p1[3];
+      outpoints->GetPoint(i, p0);
       if(i == outpoints->GetNumberOfPoints() - 1){
         line->GetPointIds()->SetId(1, 0);
+        outpoints->GetPoint(0, p1);
       }else{
           line->GetPointIds()->SetId(1, i+1);
+          outpoints->GetPoint(i+1, p1);
       }
+      this->ContourLength += sqrt(vtkMath::Distance2BetweenPoints(p0, p1));
       outcellarray->InsertNextCell(line);
   }
 
