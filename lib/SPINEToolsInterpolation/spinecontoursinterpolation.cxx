@@ -112,7 +112,6 @@ int SPINEContoursInterpolation::RequestData(
       }while(distance > this->MaximumCurveError);
 
 
-
       for(double t = 0; t < 1.0; t+=1/stept){
           this->getInterpolatedPoint(p1, p2, p3, p4, pinter, t);
           outpoints->InsertNextPoint(pinter[0], pinter[1], pinter[2]);
