@@ -26,6 +26,7 @@ message(${PROJECT_SOURCE_DIR}/lib/SPINEToolsIO)
 INCLUDE_DIRECTORIES(
 	${PROJECT_SOURCE_DIR}/lib/SPINEToolsIO
         ${PROJECT_SOURCE_DIR}/lib/SPINEToolsInterpolation
+        ${PROJECT_SOURCE_DIR}/lib/Wfbplot
 )
 
 LINK_DIRECTORIES(

@@ -22,3 +22,9 @@ SET(${EXE_NAME}_LIBRARIES  SPINEToolsIO SPINEToolsInterpolation)
 
 add_executable(${EXE_NAME} MACOSX_BUNDLE ${EXE_NAME}.cxx)
 target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})
+
+SET(EXE_NAME testWfbplot)
+SET(${EXE_NAME}_LIBRARIES  Wfbplot)
+
+add_executable(${EXE_NAME} MACOSX_BUNDLE ${EXE_NAME}.cxx)
+target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})

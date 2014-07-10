@@ -1,2 +1,3 @@
 SUBDIRS(SPINEToolsIO)
 SUBDIRS(SPINEToolsInterpolation)
+SUBDIRS(Wfbplot)
