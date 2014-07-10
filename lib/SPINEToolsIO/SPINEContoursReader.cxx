@@ -30,6 +30,7 @@ vtkStandardNewMacro(SPINEContoursReader);
 SPINEContoursReader::SPINEContoursReader()
 {
   m_Output = vtkPolyDataCollection::New();
+  this->FileContent = "";
 
 }
 
@@ -42,34 +43,6 @@ SPINEContoursReader::~SPINEContoursReader()
 vtkPolyDataCollection *SPINEContoursReader::GetOutput()
 {
   return m_Output;
-}
-
-//----------------------------------------------------------------------------
-int SPINEContoursReader::RequestUpdateExtent(
-  vtkInformation *,
-  vtkInformationVector **,
-  vtkInformationVector *outputVector)
-{
-  vtkInformation *outInfo = outputVector->GetInformationObject(0);
-
-  int piece, numPieces, ghostLevel;
-
-  piece = outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_PIECE_NUMBER());
-  numPieces = outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_NUMBER_OF_PIECES());
-  ghostLevel = outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_NUMBER_OF_GHOST_LEVELS());
-
-  // make sure piece is valid
-  if (piece < 0 || piece >= numPieces)
-    {
-    return 1;
-    }
-
-  if (ghostLevel < 0)
-    {
-    return 1;
-    }
-
-  return 1;
 }
 
 //----------------------------------------------------------------------------
@@ -111,9 +84,14 @@ int SPINEContoursReader::RequestData(
     try {
 
 
-      vtkDebugMacro(<<"Filename= "<<this->GetFileName());
-
-        parser->parse(this->GetFileName());
+        if(this->GetFileName()){
+            vtkDebugMacro(<<"Filename= "<<this->GetFileName());
+            parser->parse(this->GetFileName());
+        }else if(this->FileContent.compare("") != 0){
+            vtkDebugMacro(<<"Parsing string= "<<this->FileContent);
+            xercesc::MemBufInputSource myxml_buf((const XMLByte*)this->FileContent.c_str(), this->FileContent.size(), "FileContent", false);
+            parser->parse(myxml_buf);
+        }
 
 
         DOMNodeList* contours = parser->getDocument()->getElementsByTagName(XMLString::transcode("contour"));

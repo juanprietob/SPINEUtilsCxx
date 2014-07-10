@@ -7,6 +7,7 @@
 #include <xercesc/sax/HandlerBase.hpp>
 #include <xercesc/util/XMLString.hpp>
 #include <xercesc/util/PlatformUtils.hpp>
+#include <xercesc/framework/MemBufInputSource.hpp>
 
 #include <iostream>
 
@@ -15,6 +16,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkLine.h>
 
+using namespace std;
 
 class VTKIOLEGACY_EXPORT SPINEContoursReader : public vtkDataReader
 {
@@ -29,6 +31,9 @@ public:
     vtkPolyDataCollection *GetOutput();
     void SetOutput(vtkPolyDataCollection *output);
 
+    vtkSetMacro(FileContent, string)
+    vtkGetMacro(FileContent, string)
+
 protected:
 
 	SPINEContoursReader();
@@ -36,12 +41,6 @@ protected:
 
 	int RequestData(vtkInformation *, vtkInformationVector **,
                   vtkInformationVector *);
-
-	// Update extent of PolyData is specified in pieces.
-	// Since all DataObjects should be able to set UpdateExent as pieces,
-	// just copy output->UpdateExtent  all Inputs.
-	int RequestUpdateExtent(vtkInformation *, vtkInformationVector **,
-	                  	vtkInformationVector *);
 
 	int FillOutputPortInformation(int, vtkInformation*);
 
@@ -51,4 +50,5 @@ private:
   void operator=(const SPINEContoursReader&);  // Not implemented.
 
   vtkPolyDataCollection* m_Output;
+  string FileContent;
 };
