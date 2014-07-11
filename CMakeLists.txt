@@ -33,8 +33,6 @@ LINK_DIRECTORIES(
         ${PROJECT_BINARY_DIR}/lib/
 )
 
-
-
 SUBDIRS(lib)
 SUBDIRS(appli)
 

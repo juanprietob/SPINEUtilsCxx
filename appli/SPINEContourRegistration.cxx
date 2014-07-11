@@ -95,6 +95,9 @@ int main(int argv, char** argc){
     }
 
     //cout<<endl;
+    cout<<"--col "<<vectorsource.size();
+    cout<<" --row "<<numsamples;
+    cout<<" --data ";
     for(unsigned i = 0; i < vectorsource.size(); i++){
 
         vtkSmartPointer<SPINEContourRegistration> regcontours = vtkSmartPointer<SPINEContourRegistration>::New();
