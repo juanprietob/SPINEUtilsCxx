@@ -49,7 +49,7 @@ int SPINEContourRegistration::RequestData(vtkInformation *vtkNotUsed(request),
         icp->SetSource(source);
         icp->SetTarget(target);
         icp->GetLandmarkTransform()->SetModeToSimilarity();
-        icp->SetMaximumNumberOfIterations(10);
+        icp->SetMaximumNumberOfIterations(20);
         icp->StartByMatchingCentroidsOn();
         icp->Modified();
         icp->Update();
@@ -67,7 +67,7 @@ int SPINEContourRegistration::RequestData(vtkInformation *vtkNotUsed(request),
     }
 
 
-    int angle = 0;
+    double angle = 0;
     double minangle = 0;
     double minDistance = DBL_MAX;
     double stepi = 1;
@@ -75,7 +75,7 @@ int SPINEContourRegistration::RequestData(vtkInformation *vtkNotUsed(request),
     int mindir = -1;
 
     while(dir <= 1){
-
+        angle = 0;
         while(angle < 360){
             double distance = 0;
             int start = 0;
@@ -129,12 +129,7 @@ int SPINEContourRegistration::RequestData(vtkInformation *vtkNotUsed(request),
         if(sourceindex > source->GetNumberOfPoints() - 1){
             sourceindex -= source->GetNumberOfPoints();
         }
-
-        int targetindex = round(ii/((double)source->GetNumberOfPoints()-1) * (target->GetNumberOfPoints()-1));
-        if(targetindex >= target->GetNumberOfPoints()){
-            targetindex = 0;
-        }
-        double ps[3], pt[3];
+        double ps[3];
         source->GetPoint(sourceindex, ps);
         outputpoints->InsertNextPoint(ps[0], ps[1], ps[2]);
     }

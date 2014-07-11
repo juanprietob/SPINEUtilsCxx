@@ -100,19 +100,29 @@ int main(int argv, char** argc){
     cout<<" --data ";
     for(unsigned i = 0; i < vectorsource.size(); i++){
 
+        vtkSmartPointer<vtkPolyData> source = 0;
+
         vtkSmartPointer<SPINEContourRegistration> regcontours = vtkSmartPointer<SPINEContourRegistration>::New();
         regcontours->SetInputData(vectorsource[i]);
         regcontours->SetInputTarget(target);
-        regcontours->SetSimilarityTransform(true);
+        regcontours->SetSimilarityTransform(false);
         regcontours->Update();
-        vtkPolyData* source = regcontours->GetOutput();
+        source = regcontours->GetOutput();
 
-        int stepj = source->GetNumberOfPoints()/numsamples;
 
-        for(int j = 0; j < source->GetNumberOfPoints() ; j+=stepj){
+
+        double stepj = source->GetNumberOfPoints()/numsamples;
+
+        for(int j = 0; j < numsamples ; j++){
 
             double ps[3];
-            source->GetPoint(j, ps);
+            int index = round(j*stepj);
+            if(index < source->GetNumberOfPoints()){
+                source->GetPoint(index, ps);
+            }else{
+                source->GetPoint(0, ps);
+            }
+
 
             cout<<ps[0]<<" "<<ps[1]<<" "<<ps[2]<<" ";
 

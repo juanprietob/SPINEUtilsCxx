@@ -31,6 +31,7 @@
 #include <minimizecircledistance.h>
 #include <spinecontourregistration.h>
 #include <vtkMath.h>
+#include <vtkPointData.h>
 
 using namespace std;
 
@@ -99,9 +100,18 @@ int main(int argv, char** argc){
             vtkSmartPointer<SPINEContourRegistration> regcontours = vtkSmartPointer<SPINEContourRegistration>::New();
             regcontours->SetInputData(vectorsource[i]);
             regcontours->SetInputTarget(target);
-            regcontours->SetSimilarityTransform(true);
+            regcontours->SetSimilarityTransform(false);
             regcontours->Update();
             vtkPolyData* source = regcontours->GetOutput();
+
+            vtkSmartPointer<vtkPolyDataMapper> sourcemapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+            sourcemapper->SetInputData(source);
+
+            vtkSmartPointer<vtkActor> sourceactor = vtkSmartPointer<vtkActor>::New();
+            sourceactor->SetMapper(sourcemapper);
+            sourceactor->GetProperty()->SetColor(255,0,0);
+
+            renderer->AddActor(sourceactor);
 
 
             /*MinimizeCircleDistance mindist;
@@ -124,11 +134,14 @@ int main(int argv, char** argc){
 
             vtkSmartPointer<vtkPoints> connectingpoints = vtkSmartPointer<vtkPoints>::New();
             vtkSmartPointer<vtkCellArray> connectingcellarray = vtkSmartPointer<vtkCellArray>::New();
+            vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+            colors->SetNumberOfComponents(3);
+            colors->SetName("Colors");
 
-            int stepi = source->GetNumberOfPoints()/numsamples;
+            int stepi = source->GetNumberOfPoints()/numsamples*8;
 
-            //for(unsigned i = 0; i < source->GetNumberOfPoints(); i+=stepi){
-            for(int i = 0; i < source->GetNumberOfPoints() ; i+=stepi){
+            for(unsigned i = 0; i < source->GetNumberOfPoints(); i+=stepi){
+            //for(int i = 0; i < 1  ; i+=stepi){
 
                 int targetindex = round(i/((double)source->GetNumberOfPoints()-1) * (target->GetNumberOfPoints()-1));
                 if(targetindex >= target->GetNumberOfPoints()){
@@ -140,6 +153,11 @@ int main(int argv, char** argc){
                 vtkIdType id0 = connectingpoints->InsertNextPoint(ps[0], ps[1], ps[2]);
                 vtkIdType id1 = connectingpoints->InsertNextPoint(pt[0], pt[1], pt[2]);
 
+                double tempcol = ((double)i)/((double)source->GetNumberOfPoints())*255.0;
+                unsigned char co[3] = {0, 0, (unsigned char)tempcol};
+                colors->InsertNextTupleValue(co);
+                colors->InsertNextTupleValue(co);
+
                 vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
                 line->GetPointIds()->SetId(0, id0);
                 line->GetPointIds()->SetId(1, id1);
@@ -150,6 +168,7 @@ int main(int argv, char** argc){
             vtkSmartPointer<vtkPolyData> connectingpoly = vtkSmartPointer<vtkPolyData>::New();
             connectingpoly->SetPoints(connectingpoints);
             connectingpoly->SetLines(connectingcellarray);
+            connectingpoly->GetPointData()->SetScalars(colors);
 
 
             vtkSmartPointer<vtkPolyDataMapper> connectingmapper = vtkSmartPointer<vtkPolyDataMapper>::New();

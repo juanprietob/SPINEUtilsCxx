@@ -46,8 +46,7 @@ int main(int argv, char **argc)
                 for(unsigned row = 0; row < nData; row++){
                     for(unsigned col = 0; col < pDim; col++){
                         i++;
-                        inputstring = argc[i];
-                        double coord = atof(inputstring.c_str());
+                        double coord = atof(argc[i]);
                         data->setElement(row, col, coord);
                     }
                 }
@@ -105,11 +104,56 @@ int main(int argv, char **argc)
     renderer->SetBackground(.3, .6, .3); // Background color green
 
 
+    for(unsigned j = 0; j < nData; j++){
+        vtkSmartPointer<vtkPolyData> contourpoly = vtkSmartPointer<vtkPolyData>::New();
+        vtkSmartPointer<vtkPoints> contourpoints = vtkSmartPointer<vtkPoints>::New();
+        vtkSmartPointer<vtkCellArray> contourcells = vtkSmartPointer<vtkCellArray>::New();
+        for(unsigned i = 0; i < pDim; i+=3){
+            contourpoints->InsertNextPoint(data->getElement(j, i), data->getElement(j, i+1), data->getElement(j, i+2));
+        }
+
+        for(unsigned i = 0; i < contourpoints->GetNumberOfPoints(); i++){
+            vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
+            line->GetPointIds()->SetId(0, i);
+            if(i == contourpoints->GetNumberOfPoints() - 1){
+              line->GetPointIds()->SetId(1, 0);
+            }else{
+                line->GetPointIds()->SetId(1, i+1);
+            }
+            contourcells->InsertNextCell(line);
+        }
+        contourpoly->SetPoints(contourpoints);
+        contourpoly->SetLines(contourcells);
+
+        vtkSmartPointer<vtkPolyDataMapper> contourmapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+        contourmapper->SetInputData(contourpoly);
+
+        vtkSmartPointer<vtkActor> contouractor = vtkSmartPointer<vtkActor>::New();
+        contouractor->SetMapper(contourmapper);
+        double col = ((double)j+1)/((double)nData);
+        contouractor->GetProperty()->SetColor(col, 0.2, 0.5);
+
+        renderer->AddActor(contouractor);
+    }
+
+
     vtkSmartPointer<vtkPolyData> medianpoly = vtkSmartPointer<vtkPolyData>::New();
     vtkSmartPointer<vtkPoints> medianpoints = vtkSmartPointer<vtkPoints>::New();
     vtkSmartPointer<vtkCellArray> mediancells = vtkSmartPointer<vtkCellArray>::New();
+
+    vtkSmartPointer<vtkPolyData> infpoly = vtkSmartPointer<vtkPolyData>::New();
+    vtkSmartPointer<vtkPoints> infpoints = vtkSmartPointer<vtkPoints>::New();
+    vtkSmartPointer<vtkCellArray> infcells = vtkSmartPointer<vtkCellArray>::New();
+
+    vtkSmartPointer<vtkPolyData> suppoly = vtkSmartPointer<vtkPolyData>::New();
+    vtkSmartPointer<vtkPoints> suppoints = vtkSmartPointer<vtkPoints>::New();
+    vtkSmartPointer<vtkCellArray> supcells = vtkSmartPointer<vtkCellArray>::New();
+
+
     for(unsigned i = 0; i < pDim; i+=3){
         medianpoints->InsertNextPoint(med[i], med[i+1], med[i+2]);
+        infpoints->InsertNextPoint(minBd[i], minBd[i+1], minBd[i+2]);
+        suppoints->InsertNextPoint(maxBd[i], maxBd[i+1], maxBd[i+2]);
     }
 
     for(unsigned i = 0; i < medianpoints->GetNumberOfPoints(); i++){
@@ -121,19 +165,41 @@ int main(int argv, char **argc)
             line->GetPointIds()->SetId(1, i+1);
         }
         mediancells->InsertNextCell(line);
+        infcells->InsertNextCell(line);
+        supcells->InsertNextCell(line);
     }
     medianpoly->SetPoints(medianpoints);
     medianpoly->SetLines(mediancells);
 
+    infpoly->SetPoints(infpoints);
+    infpoly->SetLines(infcells);
+    suppoly->SetPoints(suppoints);
+    suppoly->SetLines(supcells);
 
     vtkSmartPointer<vtkPolyDataMapper> medianmapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     medianmapper->SetInputData(medianpoly);
 
     vtkSmartPointer<vtkActor> medianactor = vtkSmartPointer<vtkActor>::New();
     medianactor->SetMapper(medianmapper);
-    medianactor->GetProperty()->SetColor(0,255,255);
+    medianactor->GetProperty()->SetColor(0, 1, 1);
 
-    renderer->AddActor(medianactor);
+    vtkSmartPointer<vtkPolyDataMapper> infmapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    infmapper->SetInputData(infpoly);
+
+    vtkSmartPointer<vtkActor> infactor = vtkSmartPointer<vtkActor>::New();
+    infactor->SetMapper(infmapper);
+    infactor->GetProperty()->SetColor(1, 0, 1);
+
+    vtkSmartPointer<vtkPolyDataMapper> supmapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    supmapper->SetInputData(suppoly);
+
+    vtkSmartPointer<vtkActor> supactor = vtkSmartPointer<vtkActor>::New();
+    supactor->SetMapper(supmapper);
+    supactor->GetProperty()->SetColor(0, 1, 1);
+
+    //renderer->AddActor(medianactor);
+    renderer->AddActor(infactor);
+    renderer->AddActor(supactor);
 
     renderWindow->Render();
     renderWindowInteractor->Start();
