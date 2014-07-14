@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 project(SPINEUtilsCXX)
 
 
-FIND_PACKAGE(VTK REQUIRED)
+FIND_PACKAGE(VTK)
 include(${VTK_USE_FILE})
 
 find_package(ITK REQUIRED)

@@ -16,18 +16,22 @@ target_link_libraries(ImageSeriesReadWriteDICOM ${ITK_LIBRARIES})
 add_executable(SimpleRegionGrowingSegmentation MACOSX_BUNDLE SimpleRegionGrowingSegmentation.cxx)
 target_link_libraries(SimpleRegionGrowingSegmentation ${ITK_LIBRARIES} ${XERCES_LIBRARIES})
 
+IF(${VTK_FOUND})
+    SET(EXE_NAME SPINEContourRegistration)
+    SET(${EXE_NAME}_LIBRARIES  SPINEToolsIO SPINEToolsInterpolation)
 
-SET(EXE_NAME SPINEContourRegistration)
-SET(${EXE_NAME}_LIBRARIES  SPINEToolsIO SPINEToolsInterpolation)
+    add_executable(${EXE_NAME} MACOSX_BUNDLE ${EXE_NAME}.cxx)
+    target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})
 
-add_executable(${EXE_NAME} MACOSX_BUNDLE ${EXE_NAME}.cxx)
-target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})
 
-SET(EXE_NAME SPINEWfbplot)
-SET(${EXE_NAME}_LIBRARIES  Wfbplot)
+    SET(EXE_NAME SPINEWfbplot)
+    SET(${EXE_NAME}_LIBRARIES  Wfbplot)
 
-add_executable(${EXE_NAME} MACOSX_BUNDLE ${EXE_NAME}.cxx)
-target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})
+    add_executable(${EXE_NAME} MACOSX_BUNDLE ${EXE_NAME}.cxx)
+    target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})
+ENDIF(${VTK_FOUND})
+
+
 
 
 SET(EXE_NAME SPINEAnonymize)
