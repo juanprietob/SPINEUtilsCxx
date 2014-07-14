@@ -31,19 +31,18 @@ IF(${VTK_FOUND})
     target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})
 ENDIF(${VTK_FOUND})
 
+IF(${BUILD_ANONYMIZE})
+    SET(EXE_NAME SPINEAnonymize)
+    SET(${EXE_NAME}_LIBRARIES  gdcmCommon gdcmDSED gdcmMEXD gdcmcharls gdcmjpeg12 gdcmjpeg8 gdcmuuid socketxx gdcmDICT gdcmIOD gdcmMSFF gdcmexpat gdcmjpeg16 gdcmopenjpeg gdcmzlib)
 
+    add_executable(${EXE_NAME} MACOSX_BUNDLE ${EXE_NAME}.cxx)
+    target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})
 
+    SET(EXE_NAME SPINEAnonymizeReadIDs)
+    SET(${EXE_NAME}_LIBRARIES )
 
-SET(EXE_NAME SPINEAnonymize)
-SET(${EXE_NAME}_LIBRARIES  gdcmCommon gdcmDSED gdcmMEXD gdcmcharls gdcmjpeg12 gdcmjpeg8 gdcmuuid socketxx gdcmDICT gdcmIOD gdcmMSFF gdcmexpat gdcmjpeg16 gdcmopenjpeg gdcmzlib)
-
-add_executable(${EXE_NAME} MACOSX_BUNDLE ${EXE_NAME}.cxx)
-target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})
-
-SET(EXE_NAME SPINEAnonymizeReadIDs)
-SET(${EXE_NAME}_LIBRARIES )
-
-add_executable(${EXE_NAME} MACOSX_BUNDLE ${EXE_NAME}.cxx)
-target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})
+    add_executable(${EXE_NAME} MACOSX_BUNDLE ${EXE_NAME}.cxx)
+    target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})
+ENDIF(${BUILD_ANONYMIZE})
 
 
