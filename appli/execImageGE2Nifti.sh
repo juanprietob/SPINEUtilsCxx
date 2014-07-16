@@ -11,9 +11,9 @@ do
 	patientDir=$(basename ${patientDirs})
 
 
-	for files in $(find ./temp/ -name *.gz);
+	for files in $(find ./temp/${patientDir} -name *.gz);
 	do
-		gzip -d ${files}
+		gzip -f -d ${files}
 	done
 
 	sessionId=${patientDir##*_}

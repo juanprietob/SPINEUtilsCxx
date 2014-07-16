@@ -4,7 +4,9 @@ project(SPINEUtilsCXX)
 
 
 FIND_PACKAGE(VTK)
-include(${VTK_USE_FILE})
+IF(${VTK_FOUND})
+	include(${VTK_USE_FILE})
+ENDIF(${VTK_FOUND})
 
 find_package(ITK REQUIRED)
 include(${ITK_USE_FILE})

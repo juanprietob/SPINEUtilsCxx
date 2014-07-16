@@ -5,7 +5,7 @@
 */
 
 #include "wfbplot.h"
-
+#include <algorithm>
 struct dataPair{
 	double dep;
 	int ind;
