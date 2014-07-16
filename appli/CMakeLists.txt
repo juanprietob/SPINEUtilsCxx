@@ -25,7 +25,7 @@ IF(${VTK_FOUND})
 
 
     SET(EXE_NAME SPINEWfbplot)
-    SET(${EXE_NAME}_LIBRARIES  Wfbplot)
+    SET(${EXE_NAME}_LIBRARIES  Wfbplot SPINEToolsIO)
 
     add_executable(${EXE_NAME} MACOSX_BUNDLE ${EXE_NAME}.cxx)
     target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})

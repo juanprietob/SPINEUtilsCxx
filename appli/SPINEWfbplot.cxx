@@ -6,6 +6,15 @@
 #include <stdlib.h>
 #include "wfbplot.h"
 #include "gaussweight.h"
+
+#include "vtkPolyData.h"
+#include "vtkPolyDataCollection.h"
+#include "vtkSmartPointer.h"
+#include "spinecontourswriter.h"
+#include "vtkPoints.h"
+#include "vtkLine.h"
+#include "vtkCellArray.h"
+
 using namespace std;
 
 int main(int argv, char **argc)
@@ -14,17 +23,20 @@ int main(int argv, char **argc)
     matrix* data;
     int pDim = 0;
     int nData = 0;
+    string outfilename = "";
 
     if(argc[1]){
         for(unsigned i = 0; i < argv; i++){
             string inputstring = argc[i];
 
             if(inputstring.compare("--row")==0){
-                inputstring = argc[i+1];
+                i++;
+                inputstring = argc[i];
                 pDim = 3*atoi(inputstring.c_str());
             }
             if(inputstring.compare("--col")==0){
-                inputstring = argc[i+1];
+                i++;
+                inputstring = argc[i];
                 nData = atoi(inputstring.c_str());
             }
             if(inputstring.compare("--data")==0){
@@ -37,6 +49,10 @@ int main(int argv, char **argc)
                         data->setElement(row, col, coord);
                     }
                 }
+            }
+            if(inputstring.compare("--outfilename")==0){
+                i++;
+                outfilename = argc[i];
             }
         }
 
@@ -69,17 +85,78 @@ int main(int argv, char **argc)
 
 
     wfbplot wfbTest(*data);
-    wfbTest.print();
+    //wfbTest.print();
 
     double med[pDim], inf[pDim], sup[pDim], minBd[pDim], maxBd[pDim], depth[nData];
     wfbTest.computeBoxplot(med, inf, sup, minBd, maxBd, depth);
-    wfbTest.printVector(pDim, med);
-    wfbTest.printVector(pDim, inf);
-    wfbTest.printVector(pDim, sup);
-    wfbTest.printVector(pDim, minBd);
-    wfbTest.printVector(pDim, maxBd);
-    wfbTest.printVector(nData, depth);
+
+    vector< double* > bplotdata;
+    bplotdata.push_back(med);
+    bplotdata.push_back(inf);
+    bplotdata.push_back(sup);
+    bplotdata.push_back(minBd);
+    bplotdata.push_back(maxBd);
+    bplotdata.push_back(depth);
+
+
+    vtkSmartPointer<vtkPolyDataCollection> boxplotcollection = vtkSmartPointer<vtkPolyDataCollection>::New();
+    for(unsigned i=0; i < bplotdata.size(); i++){
+
+        vtkSmartPointer<vtkPolyData> poly = vtkSmartPointer<vtkPolyData>::New();
+
+        vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+        vtkSmartPointer<vtkCellArray> cellarray = vtkSmartPointer<vtkCellArray>::New();
+
+
+        for(int j = 1; j < pDim/3; j++){
+            if(j == 1){
+                points->InsertNextPoint(bplotdata[i][0], bplotdata[i][1], bplotdata[i][2]);
+            }
+
+            points->InsertNextPoint(bplotdata[i][j*3], bplotdata[i][j*3 + 1], bplotdata[i][j*3 + 2]);
+
+            vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
+            line->GetPointIds()->SetId(0, j - 1);
+            line->GetPointIds()->SetId(1, j);
+
+            cellarray->InsertNextCell(line);
+
+            if(j == pDim - 1){
+                vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
+                line->GetPointIds()->SetId(0, j);
+                line->GetPointIds()->SetId(1, 0);
+
+                cellarray->InsertNextCell(line);
+            }
+
+        }
+        poly->SetPoints(points);
+        poly->SetLines(cellarray);
+
+        boxplotcollection->AddItem(poly);
+    }
+
+    if(outfilename.compare("") != 0){
+        vtkSmartPointer<SPINEContoursWriter> writer = vtkSmartPointer<SPINEContoursWriter>::New();
+        writer->SetInputData(boxplotcollection);
+        writer->SetFileName(outfilename.c_str());
+        writer->Write();
+    }else{
+        wfbTest.printVector(pDim, med);
+        wfbTest.printVector(pDim, inf);
+        wfbTest.printVector(pDim, sup);
+        wfbTest.printVector(pDim, minBd);
+        wfbTest.printVector(pDim, maxBd);
+        wfbTest.printVector(nData, depth);
+    }
+
+
+
+
+
     delete data;
+
+
 
     // built atlas using weighted functional boxplot
     //cout<<" --double sigma = 30;
