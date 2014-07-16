@@ -42,6 +42,8 @@
 #include "itkImageFileWriter.h"
 #include "itkNumericSeriesFileNames.h"
 #include "itkGE5ImageIO.h"
+#include "itkGE4ImageIO.h"
+
 #include "string"
 
 // Software Guide : EndCodeSnippet
@@ -174,7 +176,9 @@ int main( int argc, char ** argv )
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  reader->SetImageIO( itk::GE5ImageIO::New() );
+  reader->SetFileNames( nameGenerator->GetFileNames()  );
+
+
   // Software Guide : EndCodeSnippet
 
   //  Software Guide : BeginLatex
@@ -186,15 +190,23 @@ int main( int argc, char ** argv )
   //  Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  reader->SetFileNames( nameGenerator->GetFileNames()  );
+
+  reader->SetImageIO( itk::GE5ImageIO::New() );
 
   ImageType::Pointer resimage = 0;
   try{
     resimage = reader->GetOutput();
   }catch( itk::ExceptionObject & err ){
-      cout << "ERROR: " <<firstSliceName<<endl;
-      cout<< err << endl;
-      return EXIT_FAILURE;
+      cout << "ERROR: Trying reader GE4"<<endl;
+
+      reader->SetImageIO(itk::GE4ImageIO::New());
+      try{
+          resimage = reader->GetOutput();
+      }catch(itk::ExceptionObject & err ){
+          cout << "ERROR: " <<firstSliceName<<endl;
+          cout<< err << endl;
+          return EXIT_FAILURE;
+      }
   }
 
   cout<<endl<<"Writing to: "<<outputFileName<<endl;
@@ -232,17 +244,6 @@ int main( int argc, char ** argv )
   try
     {
     writer->Update();
-
-    //string exec =  "/usr/lib/jvm/java-7-openjdk-amd64/bin/java  -classpath /home/prieto/NetBeansProjects/SPINEUtils/dist/SPINEUtils.jar spineutils.PopulateModuleData -u 1 -t IMAGE";
-
-    if(rootDir != ""){
-
-        string exec =  "java  -classpath /home/spiner/SPINEUtils/dist/SPINEUtils.jar spineutils.PopulateModuleData -u 1 -t IMAGE";
-               exec += " -f " + outputFileName + " -it " + imagetype + " -name " + rootDir;
-
-        cout<<exec<<endl;
-        system(exec.c_str());
-    }
   }catch( itk::ExceptionObject & err )
     {
     cout << "ERROR: " <<rootDir<<"/"<<imagetype<<endl;

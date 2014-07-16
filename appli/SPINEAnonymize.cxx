@@ -118,6 +118,8 @@ int main(int argc, char *argv[])
     ano.Empty( gdcm::Tag(0x0008,0x50) );
     ano.Empty( gdcm::Tag(0x0032,0x4000) );
 
+
+
     gdcm::StringFilter sf;
     sf.SetFile(reader.GetFile());
     string strtag = sf.ToString(gdcm::Tag(0x0008, 0x103e));
