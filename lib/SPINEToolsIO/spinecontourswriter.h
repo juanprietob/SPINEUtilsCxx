@@ -58,7 +58,7 @@ private:
     vtkPolyDataCollection* InputData;
     const char* FileName;
 
-    void OutputXML(xercesc::DOMDocument *doc, string filename);
+    void OutputXML(xercesc::DOMDocument *doc, const char *filename);
 };
 
 class XStr

@@ -107,6 +107,8 @@ int main(int argc, char *argv[])
     //
     ano.Replace( gdcm::Tag(0x0010,0x20), argv[3] );
     ano.Replace( gdcm::Tag(0x0010,0x10), "Anonim" );
+    ano.Replace( gdcm::Tag(0x0002,0x0010), "1.2.840.10008.1.2.1" );//Compression
+
     ano.Empty( gdcm::Tag(0x0010,0x30) );
     ano.Empty( gdcm::Tag(0x0010,0x40) );
     ano.Empty( gdcm::Tag(0x0008,0x20) );
@@ -117,6 +119,7 @@ int main(int argc, char *argv[])
     ano.Empty( gdcm::Tag(0x0008,0x50) );
     ano.Empty( gdcm::Tag(0x0008,0x50) );
     ano.Empty( gdcm::Tag(0x0032,0x4000) );
+
 
 
 

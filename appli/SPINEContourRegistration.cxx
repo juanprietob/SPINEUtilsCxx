@@ -41,6 +41,8 @@ int main(int argv, char** argc){
 
     string filename = "";
 
+
+
     if(argc[1]){
         cout<<argc[1]<<endl;
         filename = argc[1];

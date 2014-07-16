@@ -50,7 +50,7 @@ int main(int argv, char **argc)
                     }
                 }
             }
-            if(inputstring.compare("--outfilename")==0){
+            if(inputstring.compare("--outfn")==0){
                 i++;
                 outfilename = argc[i];
             }
@@ -79,6 +79,9 @@ int main(int argv, char **argc)
                         data->setElement(i, j, coord);
                     }
                 }
+            }
+            if(inputstring.compare("--outfn")==0){
+                cin >> outfilename;
             }
         }
     }
@@ -136,19 +139,21 @@ int main(int argv, char **argc)
         boxplotcollection->AddItem(poly);
     }
 
-    if(outfilename.compare("") != 0){
-        vtkSmartPointer<SPINEContoursWriter> writer = vtkSmartPointer<SPINEContoursWriter>::New();
-        writer->SetInputData(boxplotcollection);
+    vtkSmartPointer<SPINEContoursWriter> writer = vtkSmartPointer<SPINEContoursWriter>::New();
+    writer->SetInputData(boxplotcollection);
+    if(outfilename.compare("")!=0){
         writer->SetFileName(outfilename.c_str());
-        writer->Write();
-    }else{
+    }
+    writer->Write();
+
+    /*if(outfilename.compare("") != 0){
         wfbTest.printVector(pDim, med);
         wfbTest.printVector(pDim, inf);
         wfbTest.printVector(pDim, sup);
         wfbTest.printVector(pDim, minBd);
         wfbTest.printVector(pDim, maxBd);
         wfbTest.printVector(nData, depth);
-    }
+    }*/
 
 
 

@@ -6,6 +6,7 @@ vtkStandardNewMacro(SPINEContoursWriter);
 
 SPINEContoursWriter::SPINEContoursWriter()
 {
+    FileName = 0;
 }
 
 SPINEContoursWriter::~SPINEContoursWriter()
@@ -116,7 +117,7 @@ void SPINEContoursWriter::Write(){
 
 }
 
-void SPINEContoursWriter::OutputXML(xercesc::DOMDocument* pmyDOMDocument, std::string filePath)
+void SPINEContoursWriter::OutputXML(xercesc::DOMDocument* pmyDOMDocument, const char* filePath)
 {
     //Return the first registered implementation that has the desired features. In this case, we are after a DOM implementation that has the LS feature... or Load/Save.
     XMLCh tempStr[3] = {chLatin_L, chLatin_S, chNull};
@@ -125,33 +126,44 @@ void SPINEContoursWriter::OutputXML(xercesc::DOMDocument* pmyDOMDocument, std::s
     // Create a DOMLSSerializer which is used to serialize a DOM tree into an XML document.
     DOMLSSerializer *serializer = ((DOMImplementationLS*)implementation)->createLSSerializer();
 
+
+
     // Make the output more human readable by inserting line feeds.
-    if (serializer->getDomConfig()->canSetParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true))
-        serializer->getDomConfig()->setParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true);
+    //if (serializer->getDomConfig()->canSetParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true))
+    //    serializer->getDomConfig()->setParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true);
 
     // The end-of-line sequence of characters to be used in the XML being written out.
-    serializer->setNewLine(XMLString::transcode("\r\n"));
+    //serializer->setNewLine(XMLString::transcode("\r\n"));
 
     // Convert the path into Xerces compatible XMLCh*.
-    XMLCh *tempFilePath = XMLString::transcode(filePath.c_str());
 
-    // Specify the target for the XML output.
-    XMLFormatTarget *formatTarget = new LocalFileFormatTarget(tempFilePath);
+    if(filePath){
+        XMLCh *tempFilePath = XMLString::transcode(filePath);
 
-    // Create a new empty output destination object.
-    DOMLSOutput *output = ((DOMImplementationLS*)implementation)->createLSOutput();
+        // Specify the target for the XML output.
+        XMLFormatTarget *formatTarget = new LocalFileFormatTarget(tempFilePath);
 
-    // Set the stream to our target.
-    output->setByteStream(formatTarget);
+        // Create a new empty output destination object.
+        DOMLSOutput *output = ((DOMImplementationLS*)implementation)->createLSOutput();
 
-    // Write the serialized output to the destination.
-    serializer->write(pmyDOMDocument, output);
+        // Set the stream to our target.
+        output->setByteStream(formatTarget);
+
+        // Write the serialized output to the destination.
+        serializer->write(pmyDOMDocument, output);
+
+        XMLString::release(&tempFilePath);
+        delete formatTarget;
+        output->release();
+    }else{
+
+        string strdoc = XMLString::transcode(serializer->writeToString(pmyDOMDocument));
+        cout<<strdoc<<endl<<endl;
+    }
 
     // Cleanup.
     serializer->release();
-    XMLString::release(&tempFilePath);
-    delete formatTarget;
-    output->release();
+
 }
 
 
