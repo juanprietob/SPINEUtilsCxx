@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 
-project(SPINEUtilsCXX)
+set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
+project(SPINEUtilsCXX)
 
 FIND_PACKAGE(VTK)
 IF(${VTK_FOUND})
@@ -37,6 +38,7 @@ LINK_DIRECTORIES(
 
 SUBDIRS(lib)
 SUBDIRS(appli)
+SUBDIRS(install)
 
 OPTION(BUILD_ANONYMIZE "Build test ?" TRUE)
 OPTION(BUILD_TEST "Build test ?" OFF)
