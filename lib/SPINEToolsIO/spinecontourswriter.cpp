@@ -7,6 +7,8 @@ vtkStandardNewMacro(SPINEContoursWriter);
 SPINEContoursWriter::SPINEContoursWriter()
 {
     FileName = 0;
+    InputData = 0;
+    ContoursType = "contours";
 }
 
 SPINEContoursWriter::~SPINEContoursWriter()
@@ -50,10 +52,7 @@ void SPINEContoursWriter::Write(){
 
            DOMElement* rootElem = doc->getDocumentElement();
 
-           rootElem->setAttribute(X("type"), X("boxplots"));
-
-           DOMElement*  contours = doc->createElement(X("contours"));
-           rootElem->appendChild(contours);
+           rootElem->setAttribute(X("type"), X(ContoursType));
 
            for(int i = 0; i < InputData->GetNumberOfItems(); i++){
                vtkPolyData* nextpoly = InputData->GetNextPolyData(it);
@@ -61,13 +60,16 @@ void SPINEContoursWriter::Write(){
                DOMElement*  contour = doc->createElement(X("contour"));
                rootElem->appendChild(contour);
 
+               DOMElement*  points = doc->createElement(X("points"));
+               contour->appendChild(points);
+
                for(unsigned j = 0; j < nextpoly->GetNumberOfPoints(); j++){
 
                    double p[3];
                    nextpoly->GetPoint(j, p);
 
                    DOMElement*  point = doc->createElement(X("point"));
-                   contour->appendChild(point);
+                   points->appendChild(point);
 
                    char buf[50];
                    sprintf(buf, "%f", p[0]);

@@ -141,6 +141,7 @@ int main(int argv, char **argc)
 
     vtkSmartPointer<SPINEContoursWriter> writer = vtkSmartPointer<SPINEContoursWriter>::New();
     writer->SetInputData(boxplotcollection);
+    writer->SetContoursType("boxplots");
     if(outfilename.compare("")!=0){
         writer->SetFileName(outfilename.c_str());
     }

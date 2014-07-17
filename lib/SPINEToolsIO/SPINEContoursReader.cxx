@@ -75,8 +75,8 @@ int SPINEContoursReader::RequestData(
     }
 
     XercesDOMParser* parser = new XercesDOMParser();
-    parser->setValidationScheme(XercesDOMParser::Val_Always);
-    parser->setDoNamespaces(true);    // optional
+    //parser->setValidationScheme(XercesDOMParser::Val_Always);
+   //parser->setDoNamespaces(true);    // optional
 
     ErrorHandler* errHandler = (ErrorHandler*) new HandlerBase();
     parser->setErrorHandler(errHandler);

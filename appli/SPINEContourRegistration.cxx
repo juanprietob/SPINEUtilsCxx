@@ -42,18 +42,19 @@ int main(int argv, char** argc){
     string filename = "";
 
 
-
     if(argc[1]){
         cout<<argc[1]<<endl;
         filename = argc[1];
         sourcereader->SetFileName(filename.c_str());
     }else{
-        string contourXML;
+        string contourXML = "";
         while(!cin.eof()){
-            string inputstring;
+            string inputstring = "";
             cin >> inputstring;
-            contourXML += " " + inputstring + " ";
+            contourXML += inputstring + " ";
         }
+
+        //cout<<contourXML<<endl;
 
         sourcereader->SetFileContent(contourXML.c_str());
 

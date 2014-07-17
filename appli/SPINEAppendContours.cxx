@@ -16,6 +16,11 @@
 
 using namespace std;
 
+void help(char* exec){
+    cout<<"usage: "<<exec<<" --fn <SPINE contour filename> --id <contour id>"<<endl;
+    cout<<"Add as many contours and ids as you want. This program creates a unique file with the selected contours."<<endl;
+}
+
 int main(int argv, char **argc)
 {
 
@@ -26,17 +31,25 @@ int main(int argv, char **argc)
 
     for(int i = 1; i < argv; i++){
         string input = argc[i];
-        if(input.compare("-f")==0){
+        if(input.compare("--fn")==0){
             i++;
             contoursFileNames.push_back(string(argc[i]));
-        }else if(input.compare("-id")==0){
+        }else if(input.compare("--id")==0){
             i++;
             contoursIds.push_back(atoi(argc[i]));
         }else if(input.compare("--outfn")==0){
             i++;
             outfilename = string(argc[i]);
+        }else if(input.compare("--help")==0 || input.compare("-help")==0){
+            help(argc[0]);
+            return 0;
         }
 
+    }
+
+    if(contoursFileNames.size() == 0){
+        help(argc[0]);
+        return 0;
     }
 
 
@@ -52,12 +65,13 @@ int main(int argv, char **argc)
 
         vtkPolyDataCollection* currentcollection = reader->GetOutput();
 
-        if(currentcollection->GetNumberOfItems() > contoursIds[i]){
+        if(currentcollection->GetNumberOfItems() <= contoursIds[i]){
             cout<<"ContourId= "<<contoursIds[i]<<", not in contours= "<<filename;
             return EXIT_FAILURE;
         }
 
-        vtkSmartPointer<vtkPolyData> currentcontour = (vtkPolyData*)currentcollection->GetItemAsObject(contoursIds[i]);
+        vtkSmartPointer<vtkPolyData> currentcontour = vtkSmartPointer<vtkPolyData>::New();
+        currentcontour->DeepCopy((vtkPolyData*)currentcollection->GetItemAsObject(contoursIds[i]));
         outputdatacollection->AddItem(currentcontour);
 
     }

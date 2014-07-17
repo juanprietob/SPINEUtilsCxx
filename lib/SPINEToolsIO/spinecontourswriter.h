@@ -44,6 +44,9 @@ public:
     vtkSetMacro(FileName,const char*)
     vtkGetMacro(FileName,const char*)
 
+    vtkSetMacro(ContoursType,const char*)
+    vtkGetMacro(ContoursType,const char*)
+
 protected:
     SPINEContoursWriter();
     ~SPINEContoursWriter();
@@ -57,6 +60,7 @@ private:
 
     vtkPolyDataCollection* InputData;
     const char* FileName;
+    const char* ContoursType;
 
     void OutputXML(xercesc::DOMDocument *doc, const char *filename);
 };
