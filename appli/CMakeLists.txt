@@ -8,7 +8,6 @@ FOREACH( NAME  ${NAMES})
 ENDFOREACH(NAME)
 
 
-
 add_executable(ImageSeriesReadWrite   ImageSeriesReadWrite.cxx)
 target_link_libraries(ImageSeriesReadWrite ${ITK_LIBRARIES})
 
@@ -24,19 +23,27 @@ IF(${VTK_FOUND})
     SET(${EXE_NAME}_LIBRARIES  SPINEToolsIO)
     add_executable(${EXE_NAME}   ${EXE_NAME}.cxx)
     target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})
+    install(TARGETS ${EXE_NAME}
+            RUNTIME
+            DESTINATION bin)
 
     SET(EXE_NAME SPINEContourRegistration)
     SET(${EXE_NAME}_LIBRARIES  SPINEToolsIO SPINEToolsInterpolation)
-
     add_executable(${EXE_NAME}   ${EXE_NAME}.cxx)
     target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})
+    install(TARGETS ${EXE_NAME}
+            RUNTIME
+            DESTINATION bin)
 
 
     SET(EXE_NAME SPINEWfbplot)
     SET(${EXE_NAME}_LIBRARIES  Wfbplot SPINEToolsIO)
-
     add_executable(${EXE_NAME}   ${EXE_NAME}.cxx)
     target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})
+    install(TARGETS ${EXE_NAME}
+            RUNTIME
+            DESTINATION bin)
+
 ENDIF(${VTK_FOUND})
 
 IF(${BUILD_ANONYMIZE})
