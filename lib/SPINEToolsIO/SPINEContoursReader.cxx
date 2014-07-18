@@ -68,7 +68,7 @@ int SPINEContoursReader::RequestData(
     }
     catch (const XMLException& toCatch) {
         char* message = XMLString::transcode(toCatch.getMessage());
-        cout << "Error during initialization! :\n"
+        cerr << "Error during initialization! :\n"
              << message << "\n";
         XMLString::release(&message);
         return 1;
@@ -151,20 +151,20 @@ int SPINEContoursReader::RequestData(
     }
     catch (const XMLException& toCatch) {
         char* message = XMLString::transcode(toCatch.getMessage());
-        cout << "Exception message is: \n"
+        cerr << "Exception message is: \n"
              << message << "\n";
         XMLString::release(&message);
         return -1;
     }
     catch (const DOMException& toCatch) {
         char* message = XMLString::transcode(toCatch.msg);
-        cout << "Exception message is: \n"
+        cerr << "Exception message is: \n"
              << message << "\n";
         XMLString::release(&message);
         return -1;
     }
     catch (...) {
-        cout << "Unexpected Exception \n" ;
+        cerr << "Unexpected Exception \n" ;
         return -1;
     }
 

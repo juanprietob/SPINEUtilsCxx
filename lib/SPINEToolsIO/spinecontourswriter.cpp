@@ -1,5 +1,5 @@
 #include "spinecontourswriter.h"
-
+#include "vtkPointData.h"
 
 #include "vtkObjectFactory.h"
 vtkStandardNewMacro(SPINEContoursWriter);
@@ -59,6 +59,8 @@ void SPINEContoursWriter::Write(){
 
                DOMElement*  contour = doc->createElement(X("contour"));
                rootElem->appendChild(contour);
+
+               contour->setAttribute(X("type"), X(nextpoly->GetPoints()->GetData()->GetName()));
 
                DOMElement*  points = doc->createElement(X("points"));
                contour->appendChild(points);

@@ -35,21 +35,73 @@
 
 using namespace std;
 
-int main(int argc, char *argv[])
-{
-  if( argc < 4 )
-    {
-    std::cerr << argv[0] << " input.dcm outdir studyId sessionId" << std::endl;
-    return 1;
-    }
-  string filename(argv[1]);
-  string session = "";
-  string projectId = "NPMSC_MGHB";
-  string subjectId = "subject1";
+void help(char* exec){
+    cerr<<"usage: "<<exec<<" -dcm <dicom file name> -outdcm <output dcm filename>"<<endl;
+    cerr<<"options: "<<endl;
+    cerr<<"-fileIds <cvs formated filename with 'patientId, anonymizeId' The patientId is replaced with specific anonymizeId>"<<endl;
+    cerr<<"-pid <patient pId>"<<endl;
+}
 
-  if(argc > 4){
-      session = argv[4];
-  }
+int main(int argv, char *argc[])
+{
+
+    string anonymizepId = "";
+    string anonymizeIdsFilename = "";
+    string dcmFile = "";
+    string dcmoutFile = "";
+    bool batchmode=false;
+
+    for(int i = 1; i < argv; i++){
+        string input = argc[i];
+        if(input.compare("-idfile")==0){
+            i++;
+            anonymizeIdsFilename = argc[i];
+        }else if("-pid"){
+            i++;
+            anonymizepId = argc[i];
+        }else if(input.compare("-dcm")==0){
+            i++;
+            dcmFile = argc[i];
+        }else if(input.compare("-outdcm")==0){
+            i++;
+            dcmoutFile = argc[i];
+        }else if(input.compare("-batchmode") == 0){
+            i++;
+            batchmode=atoi(argc[i]);
+        }else if(input.compare("-help")==0 || input.compare("--help")==0){
+            help(argc[0]);
+            return 0;
+        }
+
+    }
+
+    vector< string> elems;
+    std::ifstream  data(argc[1]);
+
+    std::string line;
+    typedef map<string, string> mapids;
+    mapids ids;
+    while(std::getline(data,line, '\r'))
+    {
+        std::stringstream  lineStream(line);
+        std::string        cell;
+        int i = 0;
+        string patientId, mrn;
+        while(std::getline(lineStream,cell,','))
+        {
+            if(i == 0){
+                patientId = cell.c_str();
+            }else if(i == 1){
+                mrn = cell.c_str();
+            }
+            i++;
+            elems.push_back(cell);
+        }
+        ids.insert(pair<string, string>(patientId, mrn));
+    }
+
+  string filename = dcmFile;
+
   if(filename.find("(")!=string::npos){
       filename.replace(filename.find("("), filename.find("(") + 1, "\(");
   }
@@ -61,16 +113,15 @@ int main(int argc, char *argv[])
   imagedir = imagedir.substr(0, imagedir.find_last_of("/"));
   imagedir = imagedir.substr(imagedir.find_last_of("/") + 1);
 
-  cout<<"input= "<< filename<<endl;
+  if(batchmode){
+    cout<<"input= "<< filename<<endl;
+  }
 
-  string outfilename = string(argv[2]);
+  string outfilename = dcmoutFile;
   string outdir = outfilename.substr(0, outfilename.find_last_of("/"));
 
   string exec = "mkdir -p " + outdir;
   system (exec.c_str());
-  /*exec = "mkdir -p " + string(argv[2]) + "/"  + imagedir;
-  system (exec.c_str());*/
-
 
   gdcm::Reader reader;
   reader.SetFileName( filename.c_str() );
@@ -104,8 +155,27 @@ int main(int argc, char *argv[])
     ano.Replace( gdcm::Tag(0x0008,0x16), ms.GetString() );
     //std::cout << ms.GetString() << std::endl;
     ano.Replace( gdcm::Tag(0x0008,0x18), gen.Generate() );
-    //
-    ano.Replace( gdcm::Tag(0x0010,0x20), argv[3] );
+
+    gdcm::StringFilter sf;
+    sf.SetFile(reader.GetFile());
+    string patientMRN = sf.ToString(gdcm::Tag(0x0010,0x20));
+    string sessionId = ids[patientMRN];
+
+    if(ids.size() > 0 && ids.find(patientMRN) != ids.end()){
+
+        ano.Replace( gdcm::Tag(0x0010,0x20), sessionId.c_str()  );
+    }else if(anonymizepId.compare("") != 0){
+        sessionId = anonymizepId;
+        ano.Replace( gdcm::Tag(0x0010,0x20), anonymizepId.c_str()  );
+    }else{
+        if(batchmode){
+            cout<<"Generating UUID as patientID."<<endl;
+        }
+        sessionId = gen.Generate();
+        ano.Replace( gdcm::Tag(0x0010,0x20), sessionId.c_str() );
+    }
+
+
     ano.Replace( gdcm::Tag(0x0010,0x10), "Anonim" );
     ano.Replace( gdcm::Tag(0x0002,0x0010), "1.2.840.10008.1.2.1" );//Compression
 
@@ -120,55 +190,21 @@ int main(int argc, char *argv[])
     ano.Empty( gdcm::Tag(0x0008,0x50) );
     ano.Empty( gdcm::Tag(0x0032,0x4000) );
 
-
-
-
-    gdcm::StringFilter sf;
-    sf.SetFile(reader.GetFile());
     string strtag = sf.ToString(gdcm::Tag(0x0008, 0x103e));
-
-
     if(strtag.find("screen save") != string::npos || strtag.find("Screen Save") != string::npos){
-
-        cout<<"Screen capture, image not saved. "<<endl;
-
+        if(batchmode){
+            cout<<"Screen capture, image not saved. "<<endl;
+        }
+        return 1;
     }else{
-        /*ano.Empty( gdcm::Tag(0x0020,0x0013) );
-        ano.Replace( gdcm::Tag(0x0020,0xd), gen.Generate() );
-        ano.Replace( gdcm::Tag(0x0020,0xe), gen.Generate() );
-        ano.Replace( gdcm::Tag(0x0008,0x64), "WSD " );*/
 
+        if(batchmode){
+            cout<<"output anonymized: "<< outfilename<<endl;
+        }
 
-        cout<<"output anonymized: "<< outfilename<<endl;
       gdcm::Writer writer;
       writer.SetFile( reader.GetFile() );
       writer.SetFileName( outfilename.c_str() );
-
-      if(session.compare("")!=0){
-
-          while(strtag.find(" ")!=string::npos){
-              strtag = strtag.replace(strtag.find(" "), 1, "");
-          }
-
-          /*string exec = "XNATRestClient -host https://xnat.utahdcc.org/DCCxnat -u jprieto -p UncK-9Doggy -m PUT -remote \"/data/archive/projects/NPMSC_MGHB/subjects/TEST_MGHB1/experiments/"+session+"?xnat:mrSessionData/date=12/07/14\"";
-          cout<<exec<<endl<<endl;
-          system(exec.c_str());
-
-          exec = "XNATRestClient -host https://xnat.utahdcc.org/DCCxnat -u jprieto -p UncK-9Doggy -m PUT -remote \"/data/archive/projects/NPMSC_MGHB/subjects/TEST_MGHB1/experiments/"+session+"/scans/"+strtag+"?xsiType=xnat:mrScanData&xnat:mrScanData/type="+strtag+"\"";
-          cout<<exec<<endl<<endl;
-          system(exec.c_str());
-
-          exec = "XNATRestClient -host https://xnat.utahdcc.org/DCCxnat -u jprieto -p UncK-9Doggy -m PUT -remote \"/data/archive/projects/NPMSC_MGHB/subjects/TEST_MGHB1/experiments/"+session+"/scans/"+strtag+"/resources/DICOM/files/\" -local "+outfilename;
-          cout<<exec<<endl<<endl;
-          system(exec.c_str());*/
-
-
-          //exec = "curl -H 'Content-Type: application/dicom' -X POST -u jprieto:UncK-9Doggy \"https://xnat.utahdcc.org/DCCxnat/data/services/import?inbody=true&PROJECT_ID="+projectId+"&SUBJECT_ID="+subjectId+"&EXPT_LABEL="+session+"\" --data-binary @"+outfilename;
-          //cout<<exec<<endl<<endl;
-          //system(exec.c_str());
-      }
-
-
 
 
       if( !writer.Write() )
@@ -177,6 +213,8 @@ int main(int argc, char *argv[])
         }
 
     }
+
+    cout<<sessionId<<endl;
 
   return 0;
 }

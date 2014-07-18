@@ -14,6 +14,7 @@
 #include "vtkPoints.h"
 #include "vtkLine.h"
 #include "vtkCellArray.h"
+#include "vtkPointData.h"
 
 using namespace std;
 
@@ -101,14 +102,24 @@ int main(int argv, char **argc)
     bplotdata.push_back(maxBd);
     bplotdata.push_back(depth);
 
+    vector< string > bplotdatanames;
+    bplotdatanames.push_back("med");
+    bplotdatanames.push_back("inf");
+    bplotdatanames.push_back("sup");
+    bplotdatanames.push_back("minBd");
+    bplotdatanames.push_back("maxBd");
+    bplotdatanames.push_back("depth");
+
 
     vtkSmartPointer<vtkPolyDataCollection> boxplotcollection = vtkSmartPointer<vtkPolyDataCollection>::New();
     for(unsigned i=0; i < bplotdata.size(); i++){
 
         vtkSmartPointer<vtkPolyData> poly = vtkSmartPointer<vtkPolyData>::New();
-
         vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
         vtkSmartPointer<vtkCellArray> cellarray = vtkSmartPointer<vtkCellArray>::New();
+
+
+        points->GetData()->SetName(bplotdatanames[i].c_str());
 
 
         for(int j = 1; j < pDim/3; j++){

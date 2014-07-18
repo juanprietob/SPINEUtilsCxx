@@ -14,6 +14,7 @@
 #include <vtkCollectionIterator.h>
 
 #include <SPINEContoursReader.h>
+#include <vtkInteractorStyleTrackballCamera.h>
 
 using namespace std;
 
@@ -26,6 +27,8 @@ int main(int argv, char** argc){
     renderWindow->AddRenderer(renderer);
     vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
     renderWindowInteractor->SetRenderWindow(renderWindow);
+    vtkInteractorStyleTrackballCamera *style = vtkInteractorStyleTrackballCamera::New();
+    renderWindowInteractor->SetInteractorStyle(style);
     renderer->SetBackground(.3, .6, .3); // Background color green
 
 

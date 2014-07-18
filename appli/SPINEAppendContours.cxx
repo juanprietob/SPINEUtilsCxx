@@ -66,7 +66,7 @@ int main(int argv, char **argc)
         vtkPolyDataCollection* currentcollection = reader->GetOutput();
 
         if(currentcollection->GetNumberOfItems() <= contoursIds[i]){
-            cout<<"ContourId= "<<contoursIds[i]<<", not in contours= "<<filename;
+            cerr<<"ContourId= "<<contoursIds[i]<<", not in contours= "<<filename;
             return EXIT_FAILURE;
         }
 
