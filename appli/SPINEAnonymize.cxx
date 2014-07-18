@@ -49,7 +49,7 @@ int main(int argv, char *argc[])
     string anonymizeIdsFilename = "";
     string dcmFile = "";
     string dcmoutFile = "";
-    bool batchmode=false;
+
 
     for(int i = 1; i < argv; i++){
         string input = argc[i];
@@ -65,9 +65,6 @@ int main(int argv, char *argc[])
         }else if(input.compare("-outdcm")==0){
             i++;
             dcmoutFile = argc[i];
-        }else if(input.compare("-batchmode") == 0){
-            i++;
-            batchmode=atoi(argc[i]);
         }else if(input.compare("-help")==0 || input.compare("--help")==0){
             help(argc[0]);
             return 0;
@@ -113,9 +110,9 @@ int main(int argv, char *argc[])
   imagedir = imagedir.substr(0, imagedir.find_last_of("/"));
   imagedir = imagedir.substr(imagedir.find_last_of("/") + 1);
 
-  if(batchmode){
+
     cout<<"input= "<< filename<<endl;
-  }
+
 
   string outfilename = dcmoutFile;
   string outdir = outfilename.substr(0, outfilename.find_last_of("/"));
@@ -168,9 +165,9 @@ int main(int argv, char *argc[])
         sessionId = anonymizepId;
         ano.Replace( gdcm::Tag(0x0010,0x20), anonymizepId.c_str()  );
     }else{
-        if(batchmode){
+
             cout<<"Generating UUID as patientID."<<endl;
-        }
+
         sessionId = gen.Generate();
         ano.Replace( gdcm::Tag(0x0010,0x20), sessionId.c_str() );
     }
@@ -192,15 +189,15 @@ int main(int argv, char *argc[])
 
     string strtag = sf.ToString(gdcm::Tag(0x0008, 0x103e));
     if(strtag.find("screen save") != string::npos || strtag.find("Screen Save") != string::npos){
-        if(batchmode){
+
             cout<<"Screen capture, image not saved. "<<endl;
-        }
+
         return 1;
     }else{
 
-        if(batchmode){
+
             cout<<"output anonymized: "<< outfilename<<endl;
-        }
+
 
       gdcm::Writer writer;
       writer.SetFile( reader.GetFile() );

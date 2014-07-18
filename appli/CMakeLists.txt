@@ -54,7 +54,7 @@ IF(${BUILD_ANONYMIZE})
     target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})
 
     SET(EXE_NAME SPINEAnonymizeReadIDs)
-    SET(${EXE_NAME}_LIBRARIES )
+    SET(${EXE_NAME}_LIBRARIES gdcmCommon gdcmDSED gdcmMEXD gdcmcharls gdcmjpeg12 gdcmjpeg8 gdcmuuid socketxx gdcmDICT gdcmIOD gdcmMSFF gdcmexpat gdcmjpeg16 gdcmopenjpeg gdcmzlib)
 
     add_executable(${EXE_NAME}   ${EXE_NAME}.cxx)
     target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})
