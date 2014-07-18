@@ -55,16 +55,16 @@ int main(int argv, char *argc[])
         string input = argc[i];
         if(input.compare("-idfile")==0){
             i++;
-            anonymizeIdsFilename = argc[i];
+            anonymizeIdsFilename = string(argc[i]);
         }else if("-pid"){
             i++;
-            anonymizepId = argc[i];
+            anonymizepId = string(argc[i]);
         }else if(input.compare("-dcm")==0){
             i++;
             dcmFile = argc[i];
         }else if(input.compare("-outdcm")==0){
             i++;
-            dcmoutFile = argc[i];
+            dcmoutFile = string(argc[i]);
         }else if(input.compare("-help")==0 || input.compare("--help")==0){
             help(argc[0]);
             return 0;
@@ -73,12 +73,13 @@ int main(int argv, char *argc[])
     }
 
     vector< string> elems;
-    std::ifstream  data(argc[1]);
+    std::ifstream  data(anonymizeIdsFilename.c_str());
 
     std::string line;
     typedef map<string, string> mapids;
     mapids ids;
-    while(std::getline(data,line, '\r'))
+    //while(std::getline(data,line, '\r'))
+    while(std::getline(data,line))
     {
         std::stringstream  lineStream(line);
         std::string        cell;
