@@ -117,7 +117,9 @@ int main(int argv, char *argc[])
   string outfilename = dcmoutFile;
   string outdir = outfilename.substr(0, outfilename.find_last_of("/"));
 
+
   string exec = "mkdir -p " + outdir;
+  cout<<exec<<endl;
   system (exec.c_str());
 
   gdcm::Reader reader;
