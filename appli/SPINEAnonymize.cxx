@@ -99,7 +99,7 @@ int main(int argv, char **argc)
             i++;
             elems.push_back(cell);
         }
-        ids.insert(pair<int, int>(atoi(patientId.c_str()), atoi(mrn.c_str())));
+        ids.insert(pair<int, int>(atoi(mrn.c_str()), atoi(patientId.c_str())));
     }
 
 	data.close();
@@ -165,7 +165,7 @@ int main(int argv, char **argc)
 
         int sessionId = ids[patientMRN];
 
-        cout<<"Id found: "<<sessionId;
+        cout<<"Id found: "<<sessionId<<endl;
         char buff[50];
         sprintf(buff, "%d", sessionId);
         ano.Replace( gdcm::Tag(0x0010,0x20), buff );
