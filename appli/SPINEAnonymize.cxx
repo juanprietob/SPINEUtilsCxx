@@ -42,7 +42,7 @@ void help(char* exec){
     cerr<<"-pid <patient pId>"<<endl;
 }
 
-int main(int argv, char *argc[])
+int main(int argv, char **argc)
 {
 
     string anonymizepId = "";
@@ -52,26 +52,30 @@ int main(int argv, char *argc[])
 
 
     for(int i = 1; i < argv; i++){
-        string input = argc[i];
+        string input = string(argc[i]);
+	cout<<input<<endl;
         if(input.compare("-idfile")==0){
-            i++;
-            anonymizeIdsFilename = string(argc[i]);
-        }else if("-pid"){
-            i++;
-            anonymizepId = string(argc[i]);
+            
+            anonymizeIdsFilename = string(argc[i+1]);
+        }else if(input.compare("-pid")==0){
+            
+            anonymizepId = string(argc[i+1]);
         }else if(input.compare("-dcm")==0){
-            i++;
-            dcmFile = argc[i];
+            
+            dcmFile = string(argc[i+1]);
         }else if(input.compare("-outdcm")==0){
-            i++;
-            dcmoutFile = string(argc[i]);
+            
+            dcmoutFile = string(argc[i+1]);
+
+
         }else if(input.compare("-help")==0 || input.compare("--help")==0){
             help(argc[0]);
             return 0;
         }
-
+	cout<<input<<endl;
     }
 
+	cout<<anonymizeIdsFilename<<endl;
     vector< string> elems;
     std::ifstream  data(anonymizeIdsFilename.c_str());
 
@@ -97,6 +101,7 @@ int main(int argv, char *argc[])
         }
         ids.insert(pair<string, string>(patientId, mrn));
     }
+	data.close();
 
   string filename = dcmFile;
 
@@ -116,12 +121,7 @@ int main(int argv, char *argc[])
 
 
   string outfilename = dcmoutFile;
-  string outdir = outfilename.substr(0, outfilename.find_last_of("/"));
 
-
-  string exec = "mkdir -p " + outdir;
-  cout<<exec<<endl;
-  system (exec.c_str());
 
   gdcm::Reader reader;
   reader.SetFileName( filename.c_str() );

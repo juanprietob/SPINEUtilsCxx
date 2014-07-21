@@ -33,6 +33,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <stdlib.h> 
+
 using namespace std;
 
 void help(char* exec){
