@@ -80,7 +80,7 @@ int main(int argv, char **argc)
     std::ifstream  data(anonymizeIdsFilename.c_str());
 
     std::string line;
-    typedef map<string, string> mapids;
+    typedef map<int, int> mapids;
     mapids ids;
     //while(std::getline(data,line, '\r'))
     while(std::getline(data,line))
@@ -99,7 +99,7 @@ int main(int argv, char **argc)
             i++;
             elems.push_back(cell);
         }
-        ids.insert(pair<string, string>(patientId, mrn));
+        ids.insert(pair<int, int>(atoi(patientId.c_str()), atoi(mrn.c_str())));
     }
 
 	data.close();
@@ -159,22 +159,31 @@ int main(int argv, char **argc)
 
     gdcm::StringFilter sf;
     sf.SetFile(reader.GetFile());
-    string patientMRN = sf.ToString(gdcm::Tag(0x0010,0x20));
-    string sessionId = ids[patientMRN];
+    int patientMRN = atoi(sf.ToString(gdcm::Tag(0x0010,0x20)).c_str());
 
     if(ids.size() > 0 && ids.find(patientMRN) != ids.end()){
 
-        ano.Replace( gdcm::Tag(0x0010,0x20), sessionId.c_str()  );
+        int sessionId = ids[patientMRN];
+
+        cout<<"Id found: "<<sessionId;
+        char buff[50];
+        sprintf(buff, "%d", sessionId);
+        ano.Replace( gdcm::Tag(0x0010,0x20), buff );
+
+
     }else if(anonymizepId.compare("") != 0){
-        sessionId = anonymizepId;
-        ano.Replace( gdcm::Tag(0x0010,0x20), anonymizepId.c_str()  );
+        int anonymid = atoi(anonymizepId.c_str());
+
+        char buff[50];
+        sprintf(buff, "%d", anonymid);
+        ano.Replace( gdcm::Tag(0x0010,0x20), buff  );
     }else{
 
         return 0;
         cout<<"Generating UUID as patientID."<<endl;
 
-        sessionId = gen.Generate();
-        ano.Replace( gdcm::Tag(0x0010,0x20), sessionId.c_str() );
+        const char* genId = gen.Generate();
+        ano.Replace( gdcm::Tag(0x0010,0x20), genId );
     }
 
 
@@ -221,8 +230,6 @@ int main(int argv, char **argc)
         }
 
     }
-
-    cout<<sessionId<<endl;
 
   return 0;
 }
