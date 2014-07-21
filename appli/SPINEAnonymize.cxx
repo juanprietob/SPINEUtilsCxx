@@ -170,7 +170,8 @@ int main(int argv, char **argc)
         ano.Replace( gdcm::Tag(0x0010,0x20), anonymizepId.c_str()  );
     }else{
 
-            cout<<"Generating UUID as patientID."<<endl;
+        return 0;
+        cout<<"Generating UUID as patientID."<<endl;
 
         sessionId = gen.Generate();
         ano.Replace( gdcm::Tag(0x0010,0x20), sessionId.c_str() );
