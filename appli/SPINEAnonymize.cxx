@@ -53,7 +53,7 @@ int main(int argv, char **argc)
 
     for(int i = 1; i < argv; i++){
         string input = string(argc[i]);
-	cout<<input<<endl;
+
         if(input.compare("-idfile")==0){
             
             anonymizeIdsFilename = string(argc[i+1]);
@@ -72,7 +72,7 @@ int main(int argv, char **argc)
             help(argc[0]);
             return 0;
         }
-	cout<<input<<endl;
+
     }
 
 	cout<<anonymizeIdsFilename<<endl;
@@ -118,6 +118,7 @@ int main(int argv, char **argc)
   imagedir = imagedir.substr(imagedir.find_last_of("/") + 1);
 
 
+  cout<<"Number of ids= "<<ids.size()<<endl;
     cout<<"input= "<< filename<<endl;
 
 
