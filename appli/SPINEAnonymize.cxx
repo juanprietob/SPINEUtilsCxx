@@ -101,6 +101,7 @@ int main(int argv, char **argc)
         }
         ids.insert(pair<string, string>(patientId, mrn));
     }
+
 	data.close();
 
   string filename = dcmFile;
@@ -197,6 +198,12 @@ int main(int argv, char **argc)
 
         return 1;
     }else{
+
+        if(outfilename.find_last_of("/") != string::npos){
+            string outdir = outfilename.substr(0, outfilename.find_last_of("/"));
+            string exec = "mkdir -p " + outdir;
+            system(exec.c_str());
+        }
 
 
             cout<<"output anonymized: "<< outfilename<<endl;
