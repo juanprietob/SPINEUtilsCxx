@@ -42,7 +42,7 @@ int main(int argv, char** argc){
     string filename = "";
 
 
-    if(argc[1]){
+    if(argv > 1){
         cout<<argc[1]<<endl;
         filename = argc[1];
         sourcereader->SetFileName(filename.c_str());
@@ -78,6 +78,8 @@ int main(int argv, char** argc){
 
     vector< vtkSmartPointer< vtkPolyData> > vectorsource;
 
+    double minBB[3] = {VTK_DOUBLE_MAX, VTK_DOUBLE_MAX, VTK_DOUBLE_MAX}, maxBB[3] = {VTK_DOUBLE_MIN, VTK_DOUBLE_MIN, VTK_DOUBLE_MIN};
+
     for(unsigned i = 0; i < contours->GetNumberOfItems(); i++){
 
         vtkPolyData* nextpoly = contours->GetNextPolyData(it);
@@ -86,10 +88,11 @@ int main(int argv, char** argc){
         contourinterpolation->SetInputData(nextpoly);
         contourinterpolation->Update();
 
-        //cout<<"Contour length = "<<contourinterpolation->GetContourLength()<<endl;
-        //cout<<"Num points = "<<contourinterpolation->GetOutput()->GetNumberOfPoints()<<endl;
-
         vectorsource.push_back(contourinterpolation->GetOutput());
+
+
+
+
 
         if(contourlength < contourinterpolation->GetContourLength()){
             target = contourinterpolation->GetOutput();

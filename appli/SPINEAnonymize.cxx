@@ -148,10 +148,10 @@ int main(int argv, char **argc)
   gdcm::Anonymizer ano;
   ano.SetFile( reader.GetFile() );
 
-  ano.RemoveGroupLength();
-  ano.RemovePrivateTags();
+  //ano.RemoveGroupLength();
+  //ano.RemovePrivateTags();
 
-  gdcm::MediaStorage ms = gdcm::MediaStorage::SecondaryCaptureImageStorage;
+  gdcm::MediaStorage ms = gdcm::MediaStorage::MRImageStorage;
 
     gdcm::UIDGenerator gen;
     ano.Replace( gdcm::Tag(0x0008,0x16), ms.GetString() );
@@ -191,16 +191,15 @@ int main(int argv, char **argc)
     ano.Replace( gdcm::Tag(0x0010,0x10), "Anonim" );
     ano.Replace( gdcm::Tag(0x0002,0x0010), "1.2.840.10008.1.2.1" );//Compression
 
-    ano.Empty( gdcm::Tag(0x0010,0x30) );
-    ano.Empty( gdcm::Tag(0x0010,0x40) );
-    ano.Empty( gdcm::Tag(0x0008,0x20) );
-    ano.Empty( gdcm::Tag(0x0008,0x30) );
-    ano.Empty( gdcm::Tag(0x0008,0x90) );
-    ano.Empty( gdcm::Tag(0x0020,0x10) );
-    ano.Empty( gdcm::Tag(0x0020,0x11) );
-    ano.Empty( gdcm::Tag(0x0008,0x50) );
-    ano.Empty( gdcm::Tag(0x0008,0x50) );
-    ano.Empty( gdcm::Tag(0x0032,0x4000) );
+    ano.Empty( gdcm::Tag(0x0010,0x30) );//birth day
+    ano.Empty( gdcm::Tag(0x0010,0x40) );//sex
+    ano.Empty( gdcm::Tag(0x0008,0x90) );//Refering physician name
+    ano.Empty( gdcm::Tag(0x0020,0x10) );//study id
+    ano.Empty( gdcm::Tag(0x0020,0x11) );//Series number
+    ano.Empty( gdcm::Tag(0x0008,0x50) );//Accesion
+    ano.Empty( gdcm::Tag(0x0010,0x4000) );//Patient comments
+    ano.Empty( gdcm::Tag(0x0032,0x4000) );//Study comments
+
 
     string strtag = sf.ToString(gdcm::Tag(0x0008, 0x103e));
     if(strtag.find("screen save") != string::npos || strtag.find("Screen Save") != string::npos){

@@ -34,3 +34,15 @@ SET(${EXE_NAME}_LIBRARIES  Wfbplot ${VTK_LIBRARIES})
 
 add_executable(${EXE_NAME} ${EXE_NAME}.cxx)
 target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})
+
+SET(EXE_NAME testImageStencil)
+SET(${EXE_NAME}_LIBRARIES  ${VTK_LIBRARIES} SPINEToolsIO SPINEToolsInterpolation)
+
+add_executable(${EXE_NAME} ${EXE_NAME}.cxx)
+target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})
+
+SET(EXE_NAME vtkTestFilter)
+SET(${EXE_NAME}_LIBRARIES  ${VTK_LIBRARIES})
+
+add_executable(${EXE_NAME} ${EXE_NAME}.cxx)
+target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})

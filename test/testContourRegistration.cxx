@@ -37,8 +37,6 @@ using namespace std;
 
 int main(int argv, char** argc){
 
-    cout<<argc[1]<<endl;
-
     vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
     vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
     renderWindow->AddRenderer(renderer);
@@ -48,10 +46,22 @@ int main(int argv, char** argc){
     renderWindowInteractor->SetInteractorStyle(style);
     renderer->SetBackground(.3, .6, .3); // Background color green
 
-
     vtkSmartPointer<SPINEContoursReader> sourcereader = vtkSmartPointer<SPINEContoursReader>::New();
-    sourcereader->SetFileName(argc[1]);
-    //sourcereader->DebugOn();
+
+    if(argv > 1){
+        sourcereader->SetFileName(argc[1]);
+    }else{
+        string contourXML = "";
+        while(!cin.eof()){
+            string inputstring = "";
+            cin >> inputstring;
+            contourXML += inputstring + " ";
+        }
+
+        //cout<<contourXML<<endl;
+
+        sourcereader->SetFileContent(contourXML.c_str());
+    }
 
     sourcereader->Update();
 

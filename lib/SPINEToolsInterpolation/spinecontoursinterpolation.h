@@ -25,13 +25,15 @@ public:
 
     vtkSetMacro(NumberOfPoints, int)
     vtkGetMacro(NumberOfPoints, int)
+
+
+    vtkGetMacro(AvgNormal, double*)
 protected:
   SPINEContoursInterpolation();
  ~SPINEContoursInterpolation();
 
   // Usual data generation method
   virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  virtual int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
 private:
   SPINEContoursInterpolation(const SPINEContoursInterpolation&);  // Not implemented.
@@ -43,6 +45,7 @@ private:
   double MaximumCurveError;
   double ContourLength;
   int NumberOfPoints;
+  double* AvgNormal;
 };
 
         #endif

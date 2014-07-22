@@ -16,6 +16,12 @@
 #include <SPINEContoursReader.h>
 #include <spinecontoursinterpolation.h>
 #include <vtkProperty.h>
+#include <vtkPointData.h>
+#include <vtkMath.h>
+#include <vtkCellArray.h>
+#include <vtkInteractorStyleTrackballCamera.h>
+#include <vtkContourFilter.h>
+#include <vtkTriangleFilter.h>
 
 using namespace std;
 
@@ -27,6 +33,8 @@ int main(int argv, char** argc){
     vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
     renderWindow->AddRenderer(renderer);
     vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+    vtkInteractorStyleTrackballCamera *style = vtkInteractorStyleTrackballCamera::New();
+    renderWindowInteractor->SetInteractorStyle(style);
     renderWindowInteractor->SetRenderWindow(renderWindow);
     renderer->SetBackground(.3, .6, .3); // Background color green
 
@@ -62,10 +70,56 @@ int main(int argv, char** argc){
         vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
         mapper->SetInputData(contourinterpolation->GetOutput());
 
+        vtkDataArray* normals = contourinterpolation->GetOutput()->GetPointData()->GetNormals();
+
         vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
         actor->SetMapper(mapper);
 
         renderer->AddActor(actor);
+
+
+
+        if(normals){
+            vtkSmartPointer<vtkPolyData> polynormals = vtkSmartPointer<vtkPolyData>::New();
+            vtkSmartPointer<vtkPoints> normalpoints = vtkSmartPointer<vtkPoints>::New();
+            vtkSmartPointer<vtkCellArray> cellarray = vtkSmartPointer<vtkCellArray>::New();
+
+
+            for(unsigned j = 0; j < normals->GetNumberOfTuples(); j++){
+                double* normal = normals->GetTuple3(i);
+                vtkMath::Normalize(normal);
+                double p0[3];
+                contourinterpolation->GetOutput()->GetPoint(j, p0);
+                double p1[3];
+                vtkMath::Add(p0, normal, p1);
+
+
+
+                vtkSmartPointer<vtkLine> normalline = vtkSmartPointer<vtkLine>::New();
+                normalline->GetPointIds()->SetId(0, normalpoints->InsertNextPoint(p0[0], p0[1], p0[2]));
+                normalline->GetPointIds()->SetId(1, normalpoints->InsertNextPoint(p1[0], p1[1], p1[2]));
+
+                cellarray->InsertNextCell(normalline);
+
+
+
+            }
+
+            polynormals->SetPoints(normalpoints);
+            polynormals->SetLines(cellarray);
+
+            {
+                vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+                mapper->SetInputData(polynormals);
+
+                vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+                actor->SetMapper(mapper);
+
+                renderer->AddActor(actor);
+            }
+        }
+
+
     }
 
     renderWindow->Render();

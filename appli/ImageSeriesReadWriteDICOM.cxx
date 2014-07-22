@@ -43,6 +43,7 @@
 #include "itkNumericSeriesFileNames.h"
 #include "itkGDCMImageIO.h"
 #include "itkGDCMSeriesFileNames.h"
+#include "itkMetaDataObject.h"
 
 // Software Guide : EndCodeSnippet
 
@@ -72,6 +73,9 @@ int main( int argc, char ** argv )
           filename = string(argv[i+1]);
       }
   }
+
+  dirName = dirName.substr(0, dirName.find_last_of("/"));
+  outputFileName = dirName + ".nii.gz";
 
   if((dirName == "" && filename == "") || outputFileName == ""){
       help(argv[0]);
@@ -150,11 +154,21 @@ int main( int argc, char ** argv )
   // Software Guide : EndLatex
   itk::OrientImageFilter<ImageType,ImageType>::Pointer orienter = itk::OrientImageFilter<ImageType,ImageType>::New();
 
-  orienter->UseImageDirectionOn();
-  orienter->SetDesiredCoordinateOrientation(itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAS);
+  itk::Matrix<double, 3, 3> ident;
+  ident.SetIdentity();
+  ident[0][0] = -1;
+  ident[1][1] = -1;
+
+  //orienter->SetDesiredCoordinateOrientation(itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAS);
+  orienter->SetDesiredCoordinateDirection(ident);
+  orienter->SetUseImageDirection(true);
+
   orienter->SetInput(resimage);
   orienter->Update();
   resimage = orienter->GetOutput();
+
+
+  resimage->SetDirection(ident);
 
   // Software Guide : BeginCodeSnippet
 

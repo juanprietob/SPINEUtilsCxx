@@ -23,7 +23,12 @@
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkSmartPointer.h"
+#include "vtkPointData.h"
+#include "vtkDoubleArray.h"
 
+#include "vtkContourTriangulator.h"
+#include "vtkPolyDataNormals.h"
+#include "vtkGenericCell.h"
 
 vtkStandardNewMacro(SPINEContoursInterpolation);
 
@@ -34,26 +39,18 @@ SPINEContoursInterpolation::SPINEContoursInterpolation()
     this->MaximumCurveError = 0.1;
     this->ContourLength = 0;
     this->NumberOfPoints = -1;
+    AvgNormal = new double[3];
+    AvgNormal[0] = 0;
+    AvgNormal[1] = 0;
+    AvgNormal[2] = 0;
 }
 
 //--------------------------------------------------------------------------
 SPINEContoursInterpolation::~SPINEContoursInterpolation()
 {
-}
-
-//--------------------------------------------------------------------------
-int SPINEContoursInterpolation::RequestUpdateExtent(
-  vtkInformation *vtkNotUsed(request),
-  vtkInformationVector **inputVector,
-  vtkInformationVector *outputVector)
-{
-  // get the info objects
-  vtkInformation *inInfo = inputVector[0]->GetInformationObject(0);
-  vtkInformation *outInfo = outputVector->GetInformationObject(0);
-
-
-
-  return 1;
+    if(AvgNormal){
+        delete AvgNormal;
+    }
 }
 
 //--------------------------------------------------------------------------
@@ -74,6 +71,8 @@ int SPINEContoursInterpolation::RequestData(
 
   vtkPoints* contourpoints = input->GetPoints();
   vtkSmartPointer<vtkPoints> outpoints = vtkSmartPointer<vtkPoints>::New();
+
+
   if(contourpoints->GetNumberOfPoints() < 3){
       vtkErrorMacro("Cannot interpolate line. Contour points < 3")
   }
@@ -118,29 +117,64 @@ int SPINEContoursInterpolation::RequestData(
       }
   }
 
-  vtkSmartPointer<vtkCellArray> outcellarray = vtkSmartPointer<vtkCellArray>::New();
-  this->ContourLength = 0;
-  for(unsigned i = 0; i < outpoints->GetNumberOfPoints(); i++){
-      vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
-      line->GetPointIds()->SetId(0, i);
+    //vtkSmartPointer<vtkDataArray> normals = vtkSmartPointer<vtkDoubleArray>::New();
+    //normals->SetNumberOfComponents(3);
 
-      double p0[3], p1[3];
-      outpoints->GetPoint(i, p0);
-      if(i == outpoints->GetNumberOfPoints() - 1){
+    vtkSmartPointer<vtkCellArray> outcellarray = vtkSmartPointer<vtkCellArray>::New();
+    this->ContourLength = 0;
+    for(unsigned i = 0; i < outpoints->GetNumberOfPoints(); i++){
+        vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
+        line->GetPointIds()->SetId(0, i);
+
+        double p0[3], p1[3];
+        //double dp0[3], dp1[3];
+        outpoints->GetPoint(i, p0);
+        //this->getDerivative(i, outpoints, dp0);
+
+        if(i == outpoints->GetNumberOfPoints() - 1){
         line->GetPointIds()->SetId(1, 0);
         outpoints->GetPoint(0, p1);
-      }else{
+        //this->getDerivative(0, outpoints, dp1);
+        }else{
           line->GetPointIds()->SetId(1, i+1);
           outpoints->GetPoint(i+1, p1);
-      }
-      this->ContourLength += sqrt(vtkMath::Distance2BetweenPoints(p0, p1));
-      outcellarray->InsertNextCell(line);
-  }
+          //this->getDerivative(i+1, outpoints, dp1);
+        }
+        this->ContourLength += sqrt(vtkMath::Distance2BetweenPoints(p0, p1));
+        outcellarray->InsertNextCell(line);
 
-  output->SetPoints(outpoints);
-  output->SetLines(outcellarray);
+    }
 
-  return 1;
+    vtkSmartPointer<vtkPolyData> contourpoly = vtkSmartPointer<vtkPolyData>::New();
+    contourpoly->SetPoints(outpoints);
+    contourpoly->SetLines(outcellarray);
+
+    vtkSmartPointer<vtkContourTriangulator> poly = vtkSmartPointer<vtkContourTriangulator>::New();
+    poly->SetInputData(contourpoly);
+    poly->SetOutput(output);
+    poly->Update();
+
+    vtkSmartPointer<vtkPolyDataNormals> normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
+
+    normalGenerator->SetInputConnection(poly->GetOutputPort());
+
+    normalGenerator->ComputePointNormalsOn();
+    normalGenerator->ComputeCellNormalsOff();
+    normalGenerator->Update();
+
+    AvgNormal[0] = 0;
+    AvgNormal[1] = 0;
+    AvgNormal[2] = 0;
+
+    vtkDataArray* normals = normalGenerator->GetOutput()->GetPointData()->GetNormals();
+    for(int i = 0; i < normals->GetNumberOfTuples(); i++){
+        vtkMath::Add(AvgNormal, normals->GetTuple3(i), AvgNormal);
+    }
+    vtkMath::MultiplyScalar(AvgNormal, 1.0/((double) normals->GetNumberOfTuples()));
+    vtkMath::Normalize(AvgNormal);
+
+
+    return 1;
 }
 
 void SPINEContoursInterpolation::getInterpolatedPoint(const double *p1, const double *p2, const double *p3, const double *p4, double *p, double t){
