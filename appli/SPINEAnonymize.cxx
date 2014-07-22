@@ -82,8 +82,8 @@ int main(int argv, char **argc)
     std::string line;
     typedef map<int, int> mapids;
     mapids ids;
-    while(std::getline(data,line, '\r'))
-    //while(std::getline(data,line))
+    //while(std::getline(data,line, '\r'))
+    while(std::getline(data,line))
     {
         std::stringstream  lineStream(line);
         std::string        cell;
