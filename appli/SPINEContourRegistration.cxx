@@ -31,8 +31,17 @@
 #include <minimizecircledistance.h>
 #include <spinecontourregistration.h>
 #include <vtkMath.h>
+#include <vtkImageData.h>
+#include <vtkPolyDataToImageStencil.h>
+#include <vtkImageStencil.h>
+#include <vtkLinearExtrusionFilter.h>
+#include <vtkPointData.h>
+#include <vtkAppendPolyData.h>
+
+
 
 using namespace std;
+
 
 int main(int argv, char** argc){
 
@@ -73,51 +82,166 @@ int main(int argv, char** argc){
 
     vtkSmartPointer<vtkPolyData> target = 0;
     double contourlength = 0;
-    int numsamples = 200;
 
 
-    vector< vtkSmartPointer< vtkPolyData> > vectorsource;
+    vector< vtkSmartPointer< SPINEContoursInterpolation > > vectorinterpolation;
 
-    double minBB[3] = {VTK_DOUBLE_MAX, VTK_DOUBLE_MAX, VTK_DOUBLE_MAX}, maxBB[3] = {VTK_DOUBLE_MIN, VTK_DOUBLE_MIN, VTK_DOUBLE_MIN};
+    double contourBB[6] = {VTK_DOUBLE_MAX, VTK_DOUBLE_MIN, VTK_DOUBLE_MAX, VTK_DOUBLE_MIN, VTK_DOUBLE_MAX, VTK_DOUBLE_MIN};
 
     for(unsigned i = 0; i < contours->GetNumberOfItems(); i++){
 
         vtkPolyData* nextpoly = contours->GetNextPolyData(it);
 
-        vtkSmartPointer<SPINEContoursInterpolation> contourinterpolation = vtkSmartPointer<SPINEContoursInterpolation>::New();
-        contourinterpolation->SetInputData(nextpoly);
-        contourinterpolation->Update();
+        vtkSmartPointer<SPINEContoursInterpolation> interpolation = vtkSmartPointer<SPINEContoursInterpolation>::New();
+        interpolation->SetInputData(nextpoly);
 
-        vectorsource.push_back(contourinterpolation->GetOutput());
+        interpolation->Update();
 
+        vectorinterpolation.push_back(interpolation);
 
+        double bounds[6];
 
+        interpolation->GetOutput()->GetBounds(bounds);
 
+        for(int j = 0; j < 6; j+=2){
+            if(bounds[j] < contourBB[j]){
+                contourBB[j] = bounds[j];
+            }
+        }
 
-        if(contourlength < contourinterpolation->GetContourLength()){
-            target = contourinterpolation->GetOutput();
-            contourlength = contourinterpolation->GetContourLength();
+        for(int j = 1; j < 6; j+=2){
+            if(bounds[j] > contourBB[j]){
+                contourBB[j] = bounds[j];
+            }
         }
     }
 
+    vector< vtkSmartPointer<vtkImageData> > imagevector;
+
+    double *bounds = contourBB;
+    double spacing[3];
+    spacing[0] = 0.25;
+    spacing[1] = 0.25;
+    spacing[2] = 0.25;
+    // compute dimensions
+    int dim[3];
+    for (int i = 0; i < 3; i++)
+      {
+      dim[i] = static_cast<int>(ceil((bounds[i * 2 + 1] - bounds[i * 2]) /
+          spacing[i])) + 1;
+      if (dim[i] < 1)
+        dim[i] = 1;
+      }
+    double origin[3];
+    // NOTE: I am not sure whether or not we had to add some offset!
+    origin[0] = bounds[0];// + spacing[0] / 2;
+    origin[1] = bounds[2];// + spacing[1] / 2;
+    origin[2] = bounds[4];// + spacing[2] / 2;
+
+    for(int i = 0; i < vectorinterpolation.size(); i++){
+
+        vtkPolyData* interpolatedcontour = vectorinterpolation[i]->GetOutput();
+        double *avgnorm = vectorinterpolation[i]->GetAvgNormal();
+
+        vtkSmartPointer<vtkImageData> whiteImage = vtkSmartPointer<vtkImageData>::New();
+
+        whiteImage->SetSpacing(spacing);
+
+
+        whiteImage->SetDimensions(dim);
+        whiteImage->SetExtent(0, dim[0] - 1, 0, dim[1] - 1, 0, dim[2] - 1);
+
+        whiteImage->SetOrigin(origin);
+        whiteImage->AllocateScalars(VTK_UNSIGNED_CHAR,1);
+        // fill the image with foreground voxels:
+        unsigned char inval = 1;
+        unsigned char outval = 0;
+        vtkIdType count = whiteImage->GetNumberOfPoints();
+        for (vtkIdType i = 0; i < count; ++i)
+          {
+          whiteImage->GetPointData()->GetScalars()->SetTuple1(i, inval);
+          }
+
+        vtkSmartPointer<vtkAppendPolyData> append = vtkSmartPointer<vtkAppendPolyData>::New();
+
+
+        // sweep polygonal data (this is the important thing with contours!)
+        vtkSmartPointer<vtkLinearExtrusionFilter> extruder = vtkSmartPointer<vtkLinearExtrusionFilter>::New();
+
+
+
+        extruder->SetInputData(interpolatedcontour);
+        extruder->SetScaleFactor(1.);
+        extruder->SetExtrusionTypeToNormalExtrusion();
+
+
+
+        vtkMath::MultiplyScalar(avgnorm, 0.25);
+        extruder->SetVector(avgnorm[0], avgnorm[1], avgnorm[2]);
+        extruder->Update();
+
+        append->AddInputData(extruder->GetOutput());
+
+        {
+            // sweep polygonal data (this is the important thing with contours!)
+            vtkSmartPointer<vtkLinearExtrusionFilter> extruder = vtkSmartPointer<vtkLinearExtrusionFilter>::New();
+
+            extruder->SetInputData(interpolatedcontour);
+            extruder->SetScaleFactor(1.);
+            extruder->SetExtrusionTypeToNormalExtrusion();
+            vtkMath::MultiplyScalar(avgnorm, -1);
+            extruder->SetVector(avgnorm[0], avgnorm[1], avgnorm[2]);
+            extruder->Update();
+            append->AddInputData(extruder->GetOutput());
+        }
+
+        // polygonal data --> image stencil:
+        vtkSmartPointer<vtkPolyDataToImageStencil> pol2stenc = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
+        pol2stenc->SetTolerance(0); // important if extruder->SetVector(0, 0, 1) !!!
+        pol2stenc->SetInputConnection(append->GetOutputPort());
+        pol2stenc->SetOutputOrigin(origin);
+        pol2stenc->SetOutputSpacing(spacing);
+        pol2stenc->SetOutputWholeExtent(whiteImage->GetExtent());
+        pol2stenc->Update();
+
+        // cut the corresponding white image and set the background:
+        vtkSmartPointer<vtkImageStencil> imgstenc = vtkSmartPointer<vtkImageStencil>::New();
+        imgstenc->SetInputData(whiteImage);
+        imgstenc->SetStencilConnection(pol2stenc->GetOutputPort());
+        imgstenc->ReverseStencilOff();
+        imgstenc->SetBackgroundValue(outval);
+        imgstenc->Update();
+
+        imagevector.push_back(imgstenc->GetOutput());
+    }
+
+    int numsamples = dim[0]*dim[1]*dim[2];
+
+    cout<<"--col "<<imagevector.size();
+    cout<<" --row "<<numsamples;
+    cout<<" --data ";
+
+    for(int n = 0; n < imagevector.size(); n++){
+
+        for(int i = 0; i < dim[0]; i++){
+            for(int j = 0; j < dim[1]; j++){
+                for(int k = 0; k < dim[2]; k++){
+                    unsigned char*ptr = (unsigned char*)imagevector[n]->GetScalarPointer(i, j, k);
+                    int temp = *ptr;
+                    cout<<temp<<" ";
+
+                }
+            }
+        }
+        cout<<endl;
+    }
+    cout<<endl;
+
     //cout<<endl;
-    cout<<"--col "<<vectorsource.size();
+    /*cout<<"--col "<<vectorsource.size();
     cout<<" --row "<<numsamples;
     cout<<" --data ";
     for(unsigned i = 0; i < vectorsource.size(); i++){
-
-        vtkSmartPointer<vtkPolyData> source = 0;
-
-        vtkSmartPointer<SPINEContourRegistration> regcontours = vtkSmartPointer<SPINEContourRegistration>::New();
-        regcontours->SetInputData(vectorsource[i]);
-        regcontours->SetInputTarget(target);
-        regcontours->SetSimilarityTransform(false);
-        regcontours->Update();
-        source = regcontours->GetOutput();
-
-
-
-        double stepj = source->GetNumberOfPoints()/numsamples;
 
         for(int j = 0; j < numsamples ; j++){
 
@@ -136,7 +260,7 @@ int main(int argv, char** argc){
         cout<<endl;
 
     }
-    cout<<endl;
+    cout<<endl;*/
 
     return EXIT_SUCCESS;
 

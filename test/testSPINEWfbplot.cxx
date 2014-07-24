@@ -35,7 +35,7 @@ int main(int argv, char **argc)
 
             if(inputstring.compare("--row")==0){
                 inputstring = argc[i+1];
-                pDim = 3*atoi(inputstring.c_str());
+                pDim = atoi(inputstring.c_str());
             }
             if(inputstring.compare("--col")==0){
                 inputstring = argc[i+1];
@@ -48,6 +48,7 @@ int main(int argv, char **argc)
                         i++;
                         double coord = atof(argc[i]);
                         data->setElement(row, col, coord);
+                        cout<<row<<", "<<col<<"= "<<coord<<endl;
                     }
                 }
             }

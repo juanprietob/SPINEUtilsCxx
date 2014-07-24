@@ -22,6 +22,7 @@
 #include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkContourFilter.h>
 #include <vtkTriangleFilter.h>
+#include <vtkLinearExtrusionFilter.h>
 
 using namespace std;
 
@@ -65,10 +66,20 @@ int main(int argv, char** argc){
         vtkSmartPointer<SPINEContoursInterpolation> contourinterpolation = vtkSmartPointer<SPINEContoursInterpolation>::New();
         contourinterpolation->SetInputData(nextpoly);
         contourinterpolation->Update();
+        vtkPolyData* interpolatedcontour = contourinterpolation->GetOutput();
+
+        // sweep polygonal data (this is the important thing with contours!)
+        vtkSmartPointer<vtkLinearExtrusionFilter> extruder = vtkSmartPointer<vtkLinearExtrusionFilter>::New();
+
+        extruder->SetInputData(interpolatedcontour);
+        extruder->SetScaleFactor(1.);
+        extruder->SetExtrusionTypeToNormalExtrusion();
+        extruder->SetVector(-0.5, 0, 0);
+        extruder->Update();
 
 
         vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-        mapper->SetInputData(contourinterpolation->GetOutput());
+        mapper->SetInputData(extruder->GetOutput());
 
         vtkDataArray* normals = contourinterpolation->GetOutput()->GetPointData()->GetNormals();
 

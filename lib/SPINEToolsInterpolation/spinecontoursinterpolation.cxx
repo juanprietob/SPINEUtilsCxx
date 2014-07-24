@@ -157,9 +157,9 @@ int SPINEContoursInterpolation::RequestData(
     vtkSmartPointer<vtkPolyDataNormals> normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
 
     normalGenerator->SetInputConnection(poly->GetOutputPort());
-
+    //normalGenerator->SetOutput(output);
     normalGenerator->ComputePointNormalsOn();
-    normalGenerator->ComputeCellNormalsOff();
+    normalGenerator->ComputeCellNormalsOn();
     normalGenerator->Update();
 
     AvgNormal[0] = 0;
