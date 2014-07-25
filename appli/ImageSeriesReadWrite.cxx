@@ -232,6 +232,7 @@ int main( int argc, char ** argv )
   orienter->Update();
   resimage = orienter->GetOutput();
 
+  resimage->SetDirection(ident);
   // Software Guide : BeginCodeSnippet
   writer->SetInput( resimage );
   // Software Guide : EndCodeSnippet
