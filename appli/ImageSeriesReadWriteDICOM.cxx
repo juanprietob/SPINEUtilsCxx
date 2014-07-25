@@ -74,8 +74,8 @@ int main( int argc, char ** argv )
       }
   }
 
-  dirName = dirName.substr(0, dirName.find_last_of("/"));
-  outputFileName = dirName + ".nii.gz";
+  //dirName = dirName.substr(0, dirName.find_last_of("/"));
+  //outputFileName = dirName + ".nii.gz";
 
   if((dirName == "" && filename == "") || outputFileName == ""){
       help(argv[0]);
