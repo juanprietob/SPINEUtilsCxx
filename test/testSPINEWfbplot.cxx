@@ -30,7 +30,7 @@ int main(int argv, char **argc)
     int nData = 0;
 
     if(argc[1]){
-        for(unsigned i = 0; i < argv; i++){
+        for(int i = 0; i < argv; i++){
             string inputstring = argc[i];
 
             if(inputstring.compare("--row")==0){
@@ -43,12 +43,16 @@ int main(int argv, char **argc)
             }
             if(inputstring.compare("--data")==0){
                 data = new matrix(nData, pDim);
-                for(unsigned row = 0; row < nData; row++){
-                    for(unsigned col = 0; col < pDim; col++){
+                for(int row = 0; row < nData; row++){
+                    for(int col = 0; col < pDim; col++){
                         i++;
-                        double coord = atof(argc[i]);
-                        data->setElement(row, col, coord);
-                        cout<<row<<", "<<col<<"= "<<coord<<endl;
+                        if(i < argv){
+                            double coord = atof(argc[i]);
+                            data->setElement(row, col, coord);
+                            cout<<row<<", "<<col<<"= "<<coord<<endl;
+                        }else{
+                            cout<<row<<", "<<col<<"= "<<endl;
+                        }
                     }
                 }
             }
@@ -70,11 +74,15 @@ int main(int argv, char **argc)
             }
             if(inputstring.compare("--data")==0){
                 data = new matrix(nData, pDim);
-                for(unsigned i = 0; i < nData; i++){
-                    for(unsigned j = 0; j < pDim; j++){
-                        cin >> inputstring;
-                        double coord = atof(inputstring.c_str());
-                        data->setElement(i, j, coord);
+                for(int i = 0; i < nData; i++){
+                    for(int j = 0; j < pDim; j++){
+                        if(!cin.eof()){
+                            cin >> inputstring;
+                            double coord = atof(inputstring.c_str());
+                            data->setElement(i, j, coord);
+                        }else{
+                            cout<<i<<" "<<j<<endl;
+                        }
                     }
                 }
             }

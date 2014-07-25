@@ -37,7 +37,11 @@
 #include <vtkLinearExtrusionFilter.h>
 #include <vtkPointData.h>
 #include <vtkAppendPolyData.h>
+#include <vtkMetaImageWriter.h>
 
+#include "wfbplot.h"
+#include "gaussweight.h"
+#include "spinecontourswriter.h"
 
 
 using namespace std;
@@ -146,8 +150,6 @@ int main(int argv, char** argc){
         vtkSmartPointer<vtkImageData> whiteImage = vtkSmartPointer<vtkImageData>::New();
 
         whiteImage->SetSpacing(spacing);
-
-
         whiteImage->SetDimensions(dim);
         whiteImage->SetExtent(0, dim[0] - 1, 0, dim[1] - 1, 0, dim[2] - 1);
 
@@ -213,29 +215,102 @@ int main(int argv, char** argc){
         imgstenc->Update();
 
         imagevector.push_back(imgstenc->GetOutput());
+
+
     }
 
-    int numsamples = dim[0]*dim[1]*dim[2];
+    for(int i = 0; i < imagevector.size(); i++){
+        vtkSmartPointer<vtkMetaImageWriter> imageWriter = vtkSmartPointer<vtkMetaImageWriter>::New();
 
-    cout<<"--col "<<imagevector.size();
-    cout<<" --row "<<numsamples;
-    cout<<" --data ";
+        char buf[50];
+        sprintf(buf, "testImg%d.mhd", i);
 
-    for(int n = 0; n < imagevector.size(); n++){
+        imageWriter->SetFileName(buf);
+        imageWriter->SetInputData(imagevector[i]);
+        imageWriter->Write();
+    }
 
-        for(int i = 0; i < dim[0]; i++){
-            for(int j = 0; j < dim[1]; j++){
-                for(int k = 0; k < dim[2]; k++){
-                    unsigned char*ptr = (unsigned char*)imagevector[n]->GetScalarPointer(i, j, k);
-                    int temp = *ptr;
-                    cout<<temp<<" ";
+    int pDim = dim[0]*dim[1]*dim[2];
 
-                }
-            }
+    int nData = imagevector.size();
+
+    matrix* data = new matrix(nData, pDim);
+
+    for(int i = 0; i < nData; i++){
+        unsigned char*ptr = (unsigned char*)imagevector[i]->GetScalarPointer();
+        for(int j = 0; j < pDim; j++){
+
+            double temp = (double)*ptr;
+            data->setElement(i, j, temp);
+            ++ptr;
         }
-        cout<<endl;
     }
-    cout<<endl;
+
+    wfbplot wfbTest(*data);
+    //wfbTest.print();
+
+    double med[pDim], inf[pDim], sup[pDim], minBd[pDim], maxBd[pDim], depth[nData];
+    wfbTest.computeBoxplot(med, inf, sup, minBd, maxBd, depth);
+
+    vector< double* > bplotdata;
+    bplotdata.push_back(med);
+    bplotdata.push_back(inf);
+    bplotdata.push_back(sup);
+    bplotdata.push_back(minBd);
+    bplotdata.push_back(maxBd);
+    bplotdata.push_back(depth);
+
+    vector< string > bplotdatanames;
+    bplotdatanames.push_back("med");
+    bplotdatanames.push_back("inf");
+    bplotdatanames.push_back("sup");
+    bplotdatanames.push_back("minBd");
+    bplotdatanames.push_back("maxBd");
+    bplotdatanames.push_back("depth");
+
+    for(unsigned i = 0; i < bplotdata.size(); i++){
+
+        vtkSmartPointer< vtkImageData > img = vtkSmartPointer< vtkImageData >::New();
+
+        img->SetSpacing(spacing);
+        img->SetDimensions(dim);
+        img->SetExtent(0, dim[0] - 1, 0, dim[1] - 1, 0, dim[2] - 1);
+        img->SetOrigin(origin);
+        img->AllocateScalars(VTK_DOUBLE,1);
+
+        double* ptr = (double*)img->GetScalarPointer();
+        for(int j = 0; j < pDim; j++){
+            *ptr = bplotdata[i][j];
+            ++ptr;
+        }
+
+
+        vtkSmartPointer< vtkMetaImageWriter > writer = vtkSmartPointer< vtkMetaImageWriter >::New();
+        string outfile = bplotdatanames[i] + ".mhd";
+        writer->SetFileName(outfile.c_str());
+        writer->SetInputData(img);
+        writer->Write();
+    }
+
+
+
+    /*if(outfilename.compare("") != 0){
+        wfbTest.printVector(pDim, med);
+        wfbTest.printVector(pDim, inf);
+        wfbTest.printVector(pDim, sup);
+        wfbTest.printVector(pDim, minBd);
+        wfbTest.printVector(pDim, maxBd);
+        wfbTest.printVector(nData, depth);
+    }*/
+
+
+
+    delete data;
+
+
+
+
+
 
     //cout<<endl;
     /*cout<<"--col "<<vectorsource.size();

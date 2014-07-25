@@ -28,7 +28,7 @@ IF(${VTK_FOUND})
             DESTINATION bin)
 
     SET(EXE_NAME SPINEContourRegistration)
-    SET(${EXE_NAME}_LIBRARIES  SPINEToolsIO SPINEToolsInterpolation)
+    SET(${EXE_NAME}_LIBRARIES  SPINEToolsIO SPINEToolsInterpolation Wfbplot)
     add_executable(${EXE_NAME}   ${EXE_NAME}.cxx)
     target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})
     install(TARGETS ${EXE_NAME}
