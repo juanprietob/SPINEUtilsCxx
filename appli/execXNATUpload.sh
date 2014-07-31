@@ -1,21 +1,14 @@
-
 imageDir=$1
-USER=jprieto
-PASSWORD=UncK-9Doggy
-PROJECT=T01
-SUBJECT=testSub
-SESSION=${SUBJECT}_MR1
+PROJECT=NPMSC_MGHB
+JSESSIONID=2295EE7706630FB24DB84955D8B27EBA
 
-
-for dcm in $(find ${imageDir} -name *.dcm)
+for patientDir in $(ls -d $imageDir/*/);
 do
+        SUBJECT=$(basename ${patientDir##$imageDir})
+        for session in $(ls -d $patientDir/*/)
+        do
+                SESSION=$(basename ${session##$patientDir})
 
-
-    u=${outDir}/${dcm#${imageDir}*}
-    erg=`curl -H 'Content-Type: application/dicom' \
-        -X POST -u $USER:$PASSWORD \
-        "https://xnat.utahdcc.org/DCCxnat/data/services/import?inbody=true&PROJECT_ID=$PROJECT&SUBJECT_ID=$SUBJECT&EXPT_LABEL=$SESSION" \
-        --data-binary @$dcm | tr -d [:cntrl:]`
-
-
+                find $session -name "*.dcm" -exec curl  -H 'Content-Type: application/dicom' -X POST --cookie JSESSIONID=$JSESSIONID "https://xnat.utahdcc.org/DCCxnat/data/services/import?inbody=true&PROJECT_ID=$PROJECT&SUBJECT_ID=$SUBJECT&EXPT_LABEL=$SESSION" --data-binary @'{}' \;
+        done
 done

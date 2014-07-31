@@ -65,6 +65,8 @@ void SPINEContoursWriter::Write(){
                DOMElement*  points = doc->createElement(X("points"));
                contour->appendChild(points);
 
+               vtkDataArray* scalars = nextpoly->GetPointData()->GetScalars();
+
                for(unsigned j = 0; j < nextpoly->GetNumberOfPoints(); j++){
 
                    double p[3];
@@ -83,6 +85,11 @@ void SPINEContoursWriter::Write(){
                    sprintf(buf, "%f", p[2]);
                    point->setAttribute(X("pz"), X(buf));
 
+                   if(scalars){
+                       double val = scalars->GetTuple1(j);
+                       sprintf(buf, "%f", val);
+                       point->setAttribute(X("label"), X(buf));
+                   }
 
                }
            }

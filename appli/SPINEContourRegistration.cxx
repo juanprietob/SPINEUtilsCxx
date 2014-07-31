@@ -38,11 +38,17 @@
 #include <vtkPointData.h>
 #include <vtkAppendPolyData.h>
 #include <vtkMetaImageWriter.h>
+#include "vtkUnsignedShortArray.h"
 
 #include "wfbplot.h"
 #include "gaussweight.h"
 #include "spinecontourswriter.h"
 
+#include "itkImage.h"
+#include "itkImageRegionIterator.h"
+#include "itkLabelContourImageFilter.h"
+#include "itkImageFileWriter.h"
+#include "itkAddImageFilter.h"
 
 using namespace std;
 
@@ -53,6 +59,7 @@ int main(int argv, char** argc){
     //cout<<argc[0]<<endl;
 
     string filename = "";
+    string outfilename = "outBPlot.nii.gz";
 
 
     if(argv > 1){
@@ -68,7 +75,6 @@ int main(int argv, char** argc){
         }
 
         //cout<<contourXML<<endl;
-
         sourcereader->SetFileContent(contourXML.c_str());
 
     }
@@ -124,9 +130,9 @@ int main(int argv, char** argc){
 
     double *bounds = contourBB;
     double spacing[3];
-    spacing[0] = 0.25;
-    spacing[1] = 0.25;
-    spacing[2] = 0.25;
+    spacing[0] = 0.5;
+    spacing[1] = 0.5;
+    spacing[2] = 0.5;
     // compute dimensions
     int dim[3];
     for (int i = 0; i < 3; i++)
@@ -219,16 +225,16 @@ int main(int argv, char** argc){
 
     }
 
-    for(int i = 0; i < imagevector.size(); i++){
+    /*for(int i = 0; i < imagevector.size(); i++){
         vtkSmartPointer<vtkMetaImageWriter> imageWriter = vtkSmartPointer<vtkMetaImageWriter>::New();
 
         char buf[50];
-        sprintf(buf, "testImg%d.mhd", i);
+        sprintf(buf, "testImgS%d.mhd", i);
 
         imageWriter->SetFileName(buf);
         imageWriter->SetInputData(imagevector[i]);
         imageWriter->Write();
-    }
+    }*/
 
     int pDim = dim[0]*dim[1]*dim[2];
 
@@ -253,24 +259,96 @@ int main(int argv, char** argc){
     wfbTest.computeBoxplot(med, inf, sup, minBd, maxBd, depth);
 
     vector< double* > bplotdata;
+
+    unsigned short minVal = 0, maxVal = 5;//Background value and minBd value
+    bplotdata.push_back(maxBd);
+    bplotdata.push_back(sup);
     bplotdata.push_back(med);
     bplotdata.push_back(inf);
-    bplotdata.push_back(sup);
     bplotdata.push_back(minBd);
-    bplotdata.push_back(maxBd);
-    bplotdata.push_back(depth);
+    //bplotdata.push_back(depth);
 
     vector< string > bplotdatanames;
+    bplotdatanames.push_back("maxBd");
+    bplotdatanames.push_back("sup");
     bplotdatanames.push_back("med");
     bplotdatanames.push_back("inf");
-    bplotdatanames.push_back("sup");
     bplotdatanames.push_back("minBd");
-    bplotdatanames.push_back("maxBd");
-    bplotdatanames.push_back("depth");
+
+    //bplotdatanames.push_back("depth");
+
+    typedef itk::Image< unsigned short, 3> ImageType;
+    typedef itk::ImageRegionIterator< ImageType > ImageIteratorType;
+
+    ImageType::Pointer resimg = ImageType::New();
+
+    ImageType::RegionType region;
+    itk::Size<3> size;
+    size.SetElement(0, dim[0]);
+    size.SetElement(1, dim[1]);
+    size.SetElement(2, dim[2]);
+    region.SetSize(size);
+
+    resimg->SetRegions(region);
+    resimg->SetSpacing(spacing);
+    resimg->SetOrigin(origin);
+    resimg->Allocate();
+    resimg->FillBuffer(0);
+
+
 
     for(unsigned i = 0; i < bplotdata.size(); i++){
 
-        vtkSmartPointer< vtkImageData > img = vtkSmartPointer< vtkImageData >::New();
+
+        ImageType::Pointer img = ImageType::New();
+
+        ImageType::RegionType region;
+        itk::Size<3> size;
+        size.SetElement(0, dim[0]);
+        size.SetElement(1, dim[1]);
+        size.SetElement(2, dim[2]);
+        region.SetSize(size);
+
+        img->SetRegions(region);
+        img->SetSpacing(spacing);
+        img->SetOrigin(origin);
+        img->Allocate();
+
+
+
+        ImageIteratorType it(img, img->GetLargestPossibleRegion());
+        it.GoToBegin();
+        int j = 0;
+        while(!it.IsAtEnd() && j < pDim){
+            it.Set(bplotdata[i][j]);
+            j++;
+            ++it;
+        }
+
+        typedef itk::AddImageFilter< ImageType > AddImageFilterType;
+        AddImageFilterType::Pointer addimage = AddImageFilterType::New();
+        addimage->SetInput1(resimg);
+        addimage->SetInput2(img);
+        addimage->Update();
+        resimg = addimage->GetOutput();
+
+
+
+        /*typedef itk::BinaryContourImageFilter< ImageType, ImageType > BinaryContourFilterType;
+        BinaryContourFilterType::Pointer binarycontour = BinaryContourFilterType::New();
+        binarycontour->SetInput(img);
+        binarycontour->Update();*/
+
+        /*typedef itk::ImageFileWriter< ImageType > ImageFileWriterType;
+        ImageFileWriterType::Pointer writer = ImageFileWriterType::New();
+        writer->SetInput(binarycontour->GetOutput());
+        string outfile = bplotdatanames[i] + ".mhd";
+        writer->SetFileName(outfile.c_str());
+        writer->Update();*/
+
+
+
+        /*vtkSmartPointer< vtkImageData > img = vtkSmartPointer< vtkImageData >::New();
 
         img->SetSpacing(spacing);
         img->SetDimensions(dim);
@@ -289,9 +367,48 @@ int main(int argv, char** argc){
         string outfile = bplotdatanames[i] + ".mhd";
         writer->SetFileName(outfile.c_str());
         writer->SetInputData(img);
-        writer->Write();
+        writer->Write();*/
     }
 
+    /*typedef itk::LabelContourImageFilter< ImageType, ImageType > LabelContourFilterType;
+    LabelContourFilterType::Pointer labelcontour = LabelContourFilterType::New();
+    labelcontour->SetInput(resimg);
+    labelcontour->SetFullyConnected(true);
+    labelcontour->Update();
+    resimg = labelcontour->GetOutput();*/
+
+    ImageIteratorType resit(resimg, resimg->GetLargestPossibleRegion());
+    resit.GoToBegin();
+
+    vtkSmartPointer<vtkPolyData> boxplot = vtkSmartPointer<vtkPolyData>::New();
+    vtkSmartPointer<vtkPoints> boxplotpoints = vtkSmartPointer<vtkPoints>::New();
+    vtkSmartPointer<vtkUnsignedShortArray> labelarray = vtkSmartPointer<vtkUnsignedShortArray>::New();
+
+    while(!resit.IsAtEnd()){
+        if(resit.Get() != minVal && resit.Get() != maxVal){
+            ImageType::PointType physpoint;
+            resimg->TransformIndexToPhysicalPoint(resit.GetIndex(), physpoint);
+            boxplotpoints->InsertNextPoint(physpoint[0], physpoint[1], physpoint[2]);
+            labelarray->InsertNextTuple1(resit.Get());
+        }
+        ++resit;
+    }
+
+    boxplot->SetPoints(boxplotpoints);
+    boxplot->GetPointData()->SetScalars(labelarray);
+
+    vtkSmartPointer<vtkPolyDataCollection> boxplotcollection = vtkSmartPointer<vtkPolyDataCollection>::New();
+    boxplotcollection->AddItem(boxplot);
+
+    vtkSmartPointer<SPINEContoursWriter> contourwriter = vtkSmartPointer<SPINEContoursWriter>::New();
+    contourwriter->SetInputData(boxplotcollection);
+    contourwriter->Write();
+
+    typedef itk::ImageFileWriter< ImageType > ImageFileWriterType;
+    ImageFileWriterType::Pointer writer = ImageFileWriterType::New();
+    writer->SetInput(resimg);
+    writer->SetFileName(outfilename.c_str());
+    writer->Update();
 
 
     /*if(outfilename.compare("") != 0){
@@ -306,36 +423,6 @@ int main(int argv, char** argc){
 
 
     delete data;
-
-
-
-
-
-
-    //cout<<endl;
-    /*cout<<"--col "<<vectorsource.size();
-    cout<<" --row "<<numsamples;
-    cout<<" --data ";
-    for(unsigned i = 0; i < vectorsource.size(); i++){
-
-        for(int j = 0; j < numsamples ; j++){
-
-            double ps[3];
-            int index = round(j*stepj);
-            if(index < source->GetNumberOfPoints()){
-                source->GetPoint(index, ps);
-            }else{
-                source->GetPoint(0, ps);
-            }
-
-
-            cout<<ps[0]<<" "<<ps[1]<<" "<<ps[2]<<" ";
-
-        }
-        cout<<endl;
-
-    }
-    cout<<endl;*/
 
     return EXIT_SUCCESS;
 
