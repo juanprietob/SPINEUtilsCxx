@@ -67,6 +67,17 @@ int main(int argv, char** argc){
         contourinterpolation->SetInputData(nextpoly);
         contourinterpolation->Update();
         vtkPolyData* interpolatedcontour = contourinterpolation->GetOutput();
+        cout<<"Contour area= "<<contourinterpolation->GetArea()<<endl;
+
+        {
+            vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+            mapper->SetInputData(interpolatedcontour);
+
+            vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+            actor->SetMapper(mapper);
+            actor->GetProperty()->SetRepresentationToWireframe();
+            renderer->AddActor(actor);
+        }
 
         // sweep polygonal data (this is the important thing with contours!)
         vtkSmartPointer<vtkLinearExtrusionFilter> extruder = vtkSmartPointer<vtkLinearExtrusionFilter>::New();
@@ -81,20 +92,18 @@ int main(int argv, char** argc){
         vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
         mapper->SetInputData(extruder->GetOutput());
 
-        vtkDataArray* normals = contourinterpolation->GetOutput()->GetPointData()->GetNormals();
-
         vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
         actor->SetMapper(mapper);
-
-        renderer->AddActor(actor);
-
+        //renderer->AddActor(actor);
 
 
-        if(normals){
+
+        if(false){//test polynormals
             vtkSmartPointer<vtkPolyData> polynormals = vtkSmartPointer<vtkPolyData>::New();
             vtkSmartPointer<vtkPoints> normalpoints = vtkSmartPointer<vtkPoints>::New();
             vtkSmartPointer<vtkCellArray> cellarray = vtkSmartPointer<vtkCellArray>::New();
 
+            vtkDataArray* normals = contourinterpolation->GetOutput()->GetPointData()->GetNormals();
 
             for(unsigned j = 0; j < normals->GetNumberOfTuples(); j++){
                 double* normal = normals->GetTuple3(i);

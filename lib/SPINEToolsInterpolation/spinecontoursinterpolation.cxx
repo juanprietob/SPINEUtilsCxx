@@ -29,6 +29,7 @@
 #include "vtkContourTriangulator.h"
 #include "vtkPolyDataNormals.h"
 #include "vtkGenericCell.h"
+#include "vtkTriangle.h"
 
 vtkStandardNewMacro(SPINEContoursInterpolation);
 
@@ -153,6 +154,18 @@ int SPINEContoursInterpolation::RequestData(
     poly->SetInputData(contourpoly);
     poly->SetOutput(output);
     poly->Update();
+
+    vtkSmartPointer<vtkGenericCell> cell = vtkSmartPointer<vtkGenericCell>::New();
+    Area = 0;
+    for(int i = 0; i < output->GetNumberOfCells(); i++){
+      output->GetCell(i, cell);
+      vtkIdList* pointids = cell->GetPointIds();
+      double p[3][3];
+      for(unsigned j = 0; j < pointids->GetNumberOfIds() && j < 3; j++){
+        output->GetPoint(pointids->GetId(j), p[j]);
+      }
+      Area += vtkTriangle::TriangleArea(p[0], p[1], p[2]);
+    }
 
     vtkSmartPointer<vtkPolyDataNormals> normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
 

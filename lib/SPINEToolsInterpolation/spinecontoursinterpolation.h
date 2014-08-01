@@ -28,6 +28,8 @@ public:
 
 
     vtkGetMacro(AvgNormal, double*)
+
+    vtkGetMacro(Area, double)
 protected:
   SPINEContoursInterpolation();
  ~SPINEContoursInterpolation();
@@ -46,6 +48,7 @@ private:
   double ContourLength;
   int NumberOfPoints;
   double* AvgNormal;
+  double Area;
 };
 
         #endif

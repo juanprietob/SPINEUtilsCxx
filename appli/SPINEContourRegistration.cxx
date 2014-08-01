@@ -130,9 +130,9 @@ int main(int argv, char** argc){
 
     double *bounds = contourBB;
     double spacing[3];
-    spacing[0] = 0.5;
-    spacing[1] = 0.5;
-    spacing[2] = 0.5;
+    spacing[0] = 0.25;
+    spacing[1] = 0.25;
+    spacing[2] = 0.25;
     // compute dimensions
     int dim[3];
     for (int i = 0; i < 3; i++)
@@ -402,13 +402,14 @@ int main(int argv, char** argc){
 
     vtkSmartPointer<SPINEContoursWriter> contourwriter = vtkSmartPointer<SPINEContoursWriter>::New();
     contourwriter->SetInputData(boxplotcollection);
+    contourwriter->SetContoursType("boxplots");
     contourwriter->Write();
 
-    typedef itk::ImageFileWriter< ImageType > ImageFileWriterType;
+    /*typedef itk::ImageFileWriter< ImageType > ImageFileWriterType;
     ImageFileWriterType::Pointer writer = ImageFileWriterType::New();
     writer->SetInput(resimg);
     writer->SetFileName(outfilename.c_str());
-    writer->Update();
+    writer->Update();*/
 
 
     /*if(outfilename.compare("") != 0){

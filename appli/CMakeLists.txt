@@ -44,6 +44,14 @@ IF(${VTK_FOUND})
             RUNTIME
             DESTINATION bin)
 
+    SET(EXE_NAME SPINEContourArea)
+    SET(${EXE_NAME}_LIBRARIES SPINEToolsIO SPINEToolsInterpolation)
+    add_executable(${EXE_NAME}   ${EXE_NAME}.cxx)
+    target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})
+    install(TARGETS ${EXE_NAME}
+            RUNTIME
+            DESTINATION bin)        
+
 ENDIF(${VTK_FOUND})
 
 IF(${BUILD_ANONYMIZE})
