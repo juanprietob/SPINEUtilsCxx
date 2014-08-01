@@ -24,7 +24,13 @@ int main(int argv, char** argc){
     vtkCollectionSimpleIterator it;
     contours->InitTraversal(it);
 
-    cout<<argc[1]<<"; ";
+    string filename(argc[1]);
+    if(filename.find_last_of("/") != string::npos){
+        cout<<filename.substr(filename.find_last_of("/") + 1, string::npos)<<"; ";
+    }
+    
+
+    
 
     for(unsigned i = 0; i < contours->GetNumberOfItems(); i++){
 
