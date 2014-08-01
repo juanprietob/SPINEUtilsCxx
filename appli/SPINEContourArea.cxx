@@ -24,6 +24,8 @@ int main(int argv, char** argc){
     vtkCollectionSimpleIterator it;
     contours->InitTraversal(it);
 
+    cout<<argc[1]<<"; ";
+
     for(unsigned i = 0; i < contours->GetNumberOfItems(); i++){
 
         if(i > 0){
