@@ -50,9 +50,10 @@
 using namespace std;
 
 void help(char* exec){
-    cout<<"Usage: "<<exec<<" -d <folder with dicom> -o <output filename> ex: "<<exec<<" -d <patient path>/T2/"<<endl;
-    cout<<"Options: "<<endl;
-    cout<<"-f <input filename> instead of a dicom image use another image file"<<endl;
+    cerr<<"Resample an image to RAS space, use this program to use with xtk tools."<<endl;
+    cerr<<"Usage: "<<exec<<" -d <folder with dicom> -o <output filename> ex: "<<exec<<" -d <patient path>/T2/"<<endl;
+    cerr<<"Options: "<<endl;
+    cerr<<"-f <input filename> instead of a dicom image use another image file, ex: <some path>/img.nii.gz"<<endl;
 }
 
 int main( int argc, char ** argv )
@@ -125,7 +126,7 @@ int main( int argc, char ** argv )
       try{
         resimage = reader->GetOutput();
       }catch( itk::ExceptionObject & err ){
-          cout<< err << endl;
+          cerr<< err << endl;
           return EXIT_FAILURE;
       }
   }else{
@@ -172,7 +173,7 @@ int main( int argc, char ** argv )
 
   // Software Guide : BeginCodeSnippet
 
-  cout<<endl<<"Writing to: "<<outputFileName<<endl;
+  cout<<endl<<"[outputFilename, "<<outputFileName<<"]"<<endl;
   ImageWriterType::Pointer writer = ImageWriterType::New();
 
   writer->SetFileName( outputFileName.c_str() );
