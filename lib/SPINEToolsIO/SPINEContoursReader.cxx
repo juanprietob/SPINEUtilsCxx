@@ -21,6 +21,8 @@
 #include "vtkObjectFactory.h"
 #include "vtkPolyData.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
+#include "vtkDoubleArray.h"
+#include "vtkPointData.h"
 
 using namespace xercesc;
 
@@ -32,6 +34,13 @@ SPINEContoursReader::SPINEContoursReader()
   m_Output = vtkPolyDataCollection::New();
   this->FileContent = "";
 
+  _bplotnames = vtkSmartPointer<vtkStringArray>::New();
+  _bplotnames->SetName("boxplotsname");
+  _bplotnames->InsertValue(0, "maxBd");
+  _bplotnames->InsertValue(1, "sup");
+  _bplotnames->InsertValue(2, "med");
+  _bplotnames->InsertValue(3, "inf");
+  _bplotnames->InsertValue(4, "minBd");
 }
 
 //----------------------------------------------------------------------------
@@ -61,7 +70,7 @@ int SPINEContoursReader::RequestData(
   int *tempArray;
   vtkIdType *idArray;
 
-  vtkDebugMacro(<<"Reading vtk polygonal data...");
+  vtkDebugMacro(<<"Reading contours SPINE data...");
 
   try {
         XMLPlatformUtils::Initialize();
@@ -101,9 +110,9 @@ int SPINEContoursReader::RequestData(
             DOMNode* contour = contours->item(i);
 
             DOMNodeList* contourNodes = contour->getChildNodes();
+            vtkSmartPointer<vtkPolyData> vtkcontour = vtkSmartPointer<vtkPolyData>::New();
+
             for(XMLSize_t j = 0; j < contourNodes->getLength(); j++){
-
-
 
                 if(XMLString::compareString(contourNodes->item(j)->getNodeName(), XMLString::transcode("points")) == 0){
 
@@ -123,7 +132,7 @@ int SPINEContoursReader::RequestData(
                         }
                     }
 
-                    vtkSmartPointer<vtkPolyData> vtkcontour = vtkSmartPointer<vtkPolyData>::New();
+
                     vtkSmartPointer<vtkCellArray> vtkcellarray = vtkSmartPointer<vtkCellArray>::New();
 
                     for(unsigned k = 0; k < vtkpoints->GetNumberOfPoints(); k++){
@@ -142,12 +151,42 @@ int SPINEContoursReader::RequestData(
                     vtkcontour->SetPoints(vtkpoints);
                     vtkcontour->SetLines(vtkcellarray);
 
-                    //cout<<vtkcontour;
 
-                    m_Output->AddItem(vtkcontour);
+                }
+
+                if(XMLString::compareString(contourNodes->item(j)->getNodeName(), XMLString::transcode("area")) == 0){
+                    DOMNodeList* areasnode = parser->getDocument()->getElementsByTagName(XMLString::transcode("area"));
+                    if(areasnode){
+
+                        vtkSmartPointer<vtkDoubleArray> bplotareas = vtkSmartPointer<vtkDoubleArray>::New();
+                        bplotareas->SetName("boxplotsarea");
+
+                        XMLSize_t size = areasnode->getLength();
+
+                        for(XMLSize_t i = 0; i < size; i++){
+                            DOMNode* areanode = areasnode->item(i);
+                            for(unsigned j = 0; j < _bplotnames->GetNumberOfValues(); j++){
+                                string name = _bplotnames->GetValue(j);
+                                double area = atof(XMLString::transcode(areanode->getAttributes()->getNamedItem(X(name.c_str()))->getNodeValue()));
+                                bplotareas->InsertNextValue(area);
+                                //cout<<name<<" "<< area<<endl;
+
+
+                            }
+
+                        }
+
+                        vtkcontour->GetPointData()->AddArray(_bplotnames);
+                        vtkcontour->GetPointData()->AddArray(bplotareas);
+                    }
+
                 }
             }
+
+            m_Output->AddItem(vtkcontour);
         }
+
+
     }
     catch (const XMLException& toCatch) {
         char* message = XMLString::transcode(toCatch.getMessage());

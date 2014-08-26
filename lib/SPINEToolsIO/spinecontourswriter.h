@@ -65,6 +65,9 @@ private:
     void OutputXML(xercesc::DOMDocument *doc, const char *filename);
 };
 
+#ifndef XSTR_H
+#define XSTR_H
+
 class XStr
 {
 public :
@@ -102,5 +105,6 @@ private :
 
 
 };
+#endif
 
 #endif // SPINECONTOURSWRITER_H

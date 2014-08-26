@@ -15,8 +15,13 @@
 #include <vtkPolyDataCollection.h>
 #include <vtkSmartPointer.h>
 #include <vtkLine.h>
+#include "vtkStringArray.h"
 
 using namespace std;
+
+XERCES_CPP_NAMESPACE_USE
+
+#define X(str) XStr(str).unicodeForm()
 
 class VTKIOLEGACY_EXPORT SPINEContoursReader : public vtkDataReader
 {
@@ -51,4 +56,49 @@ private:
 
   vtkPolyDataCollection* m_Output;
   string FileContent;
+  vtkSmartPointer<vtkStringArray> _bplotnames;
 };
+
+
+#ifndef XSTR_H
+#define XSTR_H
+
+class XStr
+{
+public :
+    // -----------------------------------------------------------------------
+    //  Constructors and Destructor
+    // -----------------------------------------------------------------------
+    XStr(const char* const toTranscode)
+    {
+        // Call the private transcoding method
+        fUnicodeForm = XMLString::transcode(toTranscode);
+    }
+
+    ~XStr()
+    {
+        XMLString::release(&fUnicodeForm);
+    }
+
+
+    // -----------------------------------------------------------------------
+    //  Getter methods
+    // -----------------------------------------------------------------------
+    const XMLCh* unicodeForm() const
+    {
+        return fUnicodeForm;
+    }
+
+private :
+    // -----------------------------------------------------------------------
+    //  Private data members
+    //
+    //  fUnicodeForm
+    //      This is the Unicode XMLCh format of the string.
+    // -----------------------------------------------------------------------
+    XMLCh*   fUnicodeForm;
+
+
+};
+
+#endif

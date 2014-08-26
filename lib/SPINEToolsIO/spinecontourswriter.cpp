@@ -1,6 +1,9 @@
 #include "spinecontourswriter.h"
 #include "vtkPointData.h"
 
+#include "vtkStringArray.h"
+#include "vtkDoubleArray.h"
+
 #include "vtkObjectFactory.h"
 vtkStandardNewMacro(SPINEContoursWriter);
 
@@ -60,7 +63,7 @@ void SPINEContoursWriter::Write(){
                DOMElement*  contour = doc->createElement(X("contour"));
                rootElem->appendChild(contour);
 
-               contour->setAttribute(X("type"), X(nextpoly->GetPoints()->GetData()->GetName()));
+               contour->setAttribute(X("type"), X(nextpoly->GetPointData()->GetArrayName(0)));
 
                DOMElement*  points = doc->createElement(X("points"));
                contour->appendChild(points);
@@ -89,6 +92,22 @@ void SPINEContoursWriter::Write(){
                        double val = scalars->GetTuple1(j);
                        sprintf(buf, "%f", val);
                        point->setAttribute(X("label"), X(buf));
+                   }
+
+               }
+
+               if(nextpoly->GetPointData()->GetAbstractArray("boxplotsarea") && nextpoly->GetPointData()->GetAbstractArray("boxplotsname")){
+                   vtkStringArray* bplotsname = dynamic_cast<vtkStringArray*>(nextpoly->GetPointData()->GetAbstractArray("boxplotsname"));
+                   vtkDoubleArray* bplotsarea = dynamic_cast<vtkDoubleArray*>(nextpoly->GetPointData()->GetAbstractArray("boxplotsarea"));
+
+                   DOMElement*  area = doc->createElement(X("area"));
+                   contour->appendChild(area);
+
+                   for(int j = 0; j < bplotsname->GetNumberOfValues(); j++){
+                       char buf[50];
+                       sprintf(buf, "%f", bplotsarea->GetTuple1(j));
+                       string bplotname = bplotsname->GetValue(j);
+                       area->setAttribute(X(bplotname.c_str()), X(buf));
                    }
 
                }

@@ -13,30 +13,29 @@
 
 using namespace std;
 
+void help(string exec){
+    cerr<<"Usage: "<<exec<<" <contour filename>"<<endl;
+    cerr<<"Output: <contour filename>; areaContour1; areaContour2; ... ; areaContourN"<<endl;
+}
+
 int main(int argv, char** argc){
 
+    if(argv < 2){
+        help(string(argc[0]));
+
+        return 0;
+    }
     vtkSmartPointer<SPINEContoursReader> sourcereader = vtkSmartPointer<SPINEContoursReader>::New();
     sourcereader->SetFileName(argc[1]);
-
     sourcereader->Update();
 
     vtkPolyDataCollection* contours = sourcereader->GetOutput();
     vtkCollectionSimpleIterator it;
     contours->InitTraversal(it);
 
-    string filename(argc[1]);
-    if(filename.find_last_of("/") != string::npos){
-        cout<<filename.substr(filename.find_last_of("/") + 1, string::npos)<<"; ";
-    }
-    
-
-    
-
     for(unsigned i = 0; i < contours->GetNumberOfItems(); i++){
 
-        if(i > 0){
-            cout<<"; ";
-        }
+        cout<<"; ";
 
         vtkPolyData* nextpoly = contours->GetNextPolyData(it);
 
