@@ -173,7 +173,7 @@ int main( int argc, char ** argv )
 
   // Software Guide : BeginCodeSnippet
 
-  cout<<endl<<"[outputFilename, "<<outputFileName<<"]"<<endl;
+  cout<<endl<<"{\"outputFilename\": \""<<outputFileName<<"\"}"<<endl;
   ImageWriterType::Pointer writer = ImageWriterType::New();
 
   writer->SetFileName( outputFileName.c_str() );
