@@ -30,6 +30,8 @@ INCLUDE_DIRECTORIES(
 	${PROJECT_SOURCE_DIR}/lib/SPINEToolsIO
         ${PROJECT_SOURCE_DIR}/lib/SPINEToolsInterpolation
         ${PROJECT_SOURCE_DIR}/lib/Wfbplot
+        ${PROJECT_SOURCE_DIR}/lib/SPINEFiltersITK
+        ${PROJECT_SOURCE_DIR}/lib/SPINEFiltersVTK
 )
 
 LINK_DIRECTORIES(

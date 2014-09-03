@@ -1,3 +1,9 @@
 bin/*
 nbproject/*
 CMakeLists.txt.user
+
+appli/SPINEContourInfo.cxx.autosave
+
+appli/TestVTK.cxx
+
+appli/TestVTK.cxx

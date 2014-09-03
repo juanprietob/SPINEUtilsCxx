@@ -44,10 +44,10 @@
 #include "wfbplot.h"
 #include "gaussweight.h"
 #include "spinecontourswriter.h"
+#include "contourtoimagefilter.h"
 
 #include "itkImage.h"
 #include "itkImageRegionIterator.h"
-#include "itkLabelContourImageFilter.h"
 #include "itkImageFileWriter.h"
 #include "itkAddImageFilter.h"
 
@@ -125,8 +125,6 @@ int main(int argv, char** argc){
         }
     }
 
-    vector< vtkSmartPointer<vtkImageData> > imagevector;
-
     double *bounds = contourBB;
     double spacing[3];
     spacing[0] = 0.25;
@@ -152,79 +150,23 @@ int main(int argv, char** argc){
     origin[1] = bounds[2];// + spacing[1] / 2;
     origin[2] = bounds[4];// + spacing[2] / 2;
 
+    vector< vtkSmartPointer<vtkImageData> > imagevector;
+
     for(int i = 0; i < vectorinterpolation.size(); i++){
 
-        vtkPolyData* interpolatedcontour = vectorinterpolation[i]->GetOutput();
+
         double *avgnorm = vectorinterpolation[i]->GetAvgNormal();
 
-        vtkSmartPointer<vtkImageData> whiteImage = vtkSmartPointer<vtkImageData>::New();
+        vtkSmartPointer<ContourToImageFilter> contourtoimage = vtkSmartPointer<ContourToImageFilter>::New();
+        contourtoimage->SetInputConnection(vectorinterpolation[i]->GetOutputPort());
+        contourtoimage->SetVector(avgnorm);
+        contourtoimage->SetDimensions(dim);
+        contourtoimage->SetSpacing(spacing);
+        contourtoimage->SetOrigin(origin);
 
-        whiteImage->SetSpacing(spacing);
-        whiteImage->SetDimensions(dim);
-        whiteImage->SetExtent(0, dim[0] - 1, 0, dim[1] - 1, 0, dim[2] - 1);
+        contourtoimage->Update();
 
-        whiteImage->SetOrigin(origin);
-        whiteImage->AllocateScalars(VTK_UNSIGNED_CHAR,1);
-        // fill the image with foreground voxels:
-        unsigned char inval = 1;
-        unsigned char outval = 0;
-        vtkIdType count = whiteImage->GetNumberOfPoints();
-        for (vtkIdType i = 0; i < count; ++i)
-          {
-          whiteImage->GetPointData()->GetScalars()->SetTuple1(i, inval);
-          }
-
-        vtkSmartPointer<vtkAppendPolyData> append = vtkSmartPointer<vtkAppendPolyData>::New();
-
-
-        // sweep polygonal data (this is the important thing with contours!)
-        vtkSmartPointer<vtkLinearExtrusionFilter> extruder = vtkSmartPointer<vtkLinearExtrusionFilter>::New();
-
-
-
-        extruder->SetInputData(interpolatedcontour);
-        extruder->SetScaleFactor(1.);
-        extruder->SetExtrusionTypeToNormalExtrusion();
-
-
-
-        vtkMath::MultiplyScalar(avgnorm, 0.1);
-        extruder->SetVector(avgnorm[0], avgnorm[1], avgnorm[2]);
-        extruder->Update();
-
-        append->AddInputData(extruder->GetOutput());
-
-        {
-            // sweep polygonal data (this is the important thing with contours!)
-            vtkSmartPointer<vtkLinearExtrusionFilter> extruder = vtkSmartPointer<vtkLinearExtrusionFilter>::New();
-
-            extruder->SetInputData(interpolatedcontour);
-            extruder->SetScaleFactor(1.);
-            extruder->SetExtrusionTypeToNormalExtrusion();
-            vtkMath::MultiplyScalar(avgnorm, -0.1);
-            extruder->SetVector(avgnorm[0], avgnorm[1], avgnorm[2]);
-            extruder->Update();
-            append->AddInputData(extruder->GetOutput());
-        }
-
-        // polygonal data --> image stencil:
-        vtkSmartPointer<vtkPolyDataToImageStencil> pol2stenc = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
-        pol2stenc->SetTolerance(0); // important if extruder->SetVector(0, 0, 1) !!!
-        pol2stenc->SetInputConnection(append->GetOutputPort());
-        pol2stenc->SetOutputOrigin(origin);
-        pol2stenc->SetOutputSpacing(spacing);
-        pol2stenc->SetOutputWholeExtent(whiteImage->GetExtent());
-        pol2stenc->Update();
-
-        // cut the corresponding white image and set the background:
-        vtkSmartPointer<vtkImageStencil> imgstenc = vtkSmartPointer<vtkImageStencil>::New();
-        imgstenc->SetInputData(whiteImage);
-        imgstenc->SetStencilConnection(pol2stenc->GetOutputPort());
-        imgstenc->ReverseStencilOff();
-        imgstenc->SetBackgroundValue(outval);
-        imgstenc->Update();
-
-        imagevector.push_back(imgstenc->GetOutput());
+        imagevector.push_back(contourtoimage->GetOutput());
 
 
     }

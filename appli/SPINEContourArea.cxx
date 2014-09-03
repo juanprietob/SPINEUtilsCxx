@@ -33,19 +33,23 @@ int main(int argv, char** argc){
     vtkCollectionSimpleIterator it;
     contours->InitTraversal(it);
 
-    for(unsigned i = 0; i < contours->GetNumberOfItems(); i++){
+    cout<<"{";
+        for(unsigned i = 0; i < contours->GetNumberOfItems(); i++){
 
-        cout<<"; ";
+            vtkPolyData* nextpoly = contours->GetNextPolyData(it);
 
-        vtkPolyData* nextpoly = contours->GetNextPolyData(it);
+            vtkSmartPointer<SPINEContoursInterpolation> contourinterpolation = vtkSmartPointer<SPINEContoursInterpolation>::New();
+            contourinterpolation->SetInputData(nextpoly);
+            contourinterpolation->Update();
 
-        vtkSmartPointer<SPINEContoursInterpolation> contourinterpolation = vtkSmartPointer<SPINEContoursInterpolation>::New();
-        contourinterpolation->SetInputData(nextpoly);
-        contourinterpolation->Update();
-        cout<<contourinterpolation->GetArea();
+            cout<<"{\"id\": \""<<i<<"\", ";
+            cout<<"\"area\": \""<<contourinterpolation->GetArea()<<"\", ";
+            cout<<"\"perimeter\": \""<<contourinterpolation->GetContourLength()<<"\"";
+            cout<<"}";
 
-    }
-    cout<<endl;
+        }
+        cout<<"}";
+        cout<<endl;
 
 
     return EXIT_SUCCESS;
