@@ -51,8 +51,7 @@
 #include "itkAddImageFilter.h"
 #include "contourtoimagefilter.h"
 
-#include "itkMesh.h"
-#include "itkVTKPolyDataMeshIO.h"
+#include "itkShapeLabelMapFilter.h"
 
 using namespace std;
 
