@@ -111,6 +111,22 @@ void SPINEContoursWriter::Write(){
                    }
 
                }
+
+               if(nextpoly->GetPointData()->GetAbstractArray("boxplotsperimeter") && nextpoly->GetPointData()->GetAbstractArray("boxplotsname")){
+                   vtkStringArray* bplotsname = dynamic_cast<vtkStringArray*>(nextpoly->GetPointData()->GetAbstractArray("boxplotsname"));
+                   vtkDoubleArray* bplotsperimeter = dynamic_cast<vtkDoubleArray*>(nextpoly->GetPointData()->GetAbstractArray("boxplotsperimeter"));
+
+                   DOMElement*  perimeter = doc->createElement(X("perimeter"));
+                   contour->appendChild(perimeter);
+
+                   for(int j = 0; j < bplotsname->GetNumberOfValues(); j++){
+                       char buf[50];
+                       sprintf(buf, "%f", bplotsperimeter->GetTuple1(j));
+                       string bplotname = bplotsname->GetValue(j);
+                       perimeter->setAttribute(X(bplotname.c_str()), X(buf));
+                   }
+
+               }
            }
 
            this->OutputXML(doc, this->GetFileName());

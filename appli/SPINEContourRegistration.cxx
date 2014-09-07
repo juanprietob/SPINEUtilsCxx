@@ -50,6 +50,7 @@
 #include "itkImageRegionIterator.h"
 #include "itkImageFileWriter.h"
 #include "itkAddImageFilter.h"
+#include "edgecontourfilter.h"
 
 using namespace std;
 
@@ -252,6 +253,9 @@ int main(int argv, char** argc){
 
     vtkSmartPointer< vtkDoubleArray > bplotarea = vtkSmartPointer< vtkDoubleArray >::New();
     bplotarea->SetName("boxplotsarea");
+
+    vtkSmartPointer< vtkDoubleArray > bplotperimeter = vtkSmartPointer< vtkDoubleArray >::New();
+    bplotarea->SetName("boxplotsperimeter");
     for(unsigned i = 0; i < bplotdata.size(); i++){
 
 
@@ -294,48 +298,34 @@ int main(int argv, char** argc){
 
         bplotarea->InsertNextValue(numpix);
 
-        /*typedef itk::BinaryContourImageFilter< ImageType, ImageType > BinaryContourFilterType;
-        BinaryContourFilterType::Pointer binarycontour = BinaryContourFilterType::New();
-        binarycontour->SetInput(img);
-        binarycontour->Update();*/
 
-        /*typedef itk::ImageFileWriter< ImageType > ImageFileWriterType;
-        ImageFileWriterType::Pointer writer = ImageFileWriterType::New();
-        writer->SetInput(binarycontour->GetOutput());
-        string outfile = bplotdatanames[i] + ".mhd";
-        writer->SetFileName(outfile.c_str());
-        writer->Update();*/
+        double perimeter = 0;
 
+        {
+            typedef EdgeContourFilter< ImageType, ImageType > ContourDetectionFilter;
+            ContourDetectionFilter::Pointer contourFilter = ContourDetectionFilter::New();
+            contourFilter->SetInput(img);
+            contourFilter->Update();
+            img = contourFilter->GetOutput();
 
+            ImageIteratorType it(img, img->GetLargestPossibleRegion());
+            it.GoToBegin();
+            numpix = 0;
+            while(!it.IsAtEnd()){
+                if(it.Get() != 0){
+                    numpix++;
+                }
+                ++it;
+            }
+            perimeter = numpix*spacing[0];
+            bplotperimeter->InsertNextValue(perimeter);
+            //cout<<", "<<numpix<<", "<<sqrt(pow(spacing[0], 2) + pow(spacing[1], 2));
 
-        /*vtkSmartPointer< vtkImageData > img = vtkSmartPointer< vtkImageData >::New();
-
-        img->SetSpacing(spacing);
-        img->SetDimensions(dim);
-        img->SetExtent(0, dim[0] - 1, 0, dim[1] - 1, 0, dim[2] - 1);
-        img->SetOrigin(origin);
-        img->AllocateScalars(VTK_DOUBLE,1);
-
-        double* ptr = (double*)img->GetScalarPointer();
-        for(int j = 0; j < pDim; j++){
-            *ptr = bplotdata[i][j];
-            ++ptr;
         }
 
-
-        vtkSmartPointer< vtkMetaImageWriter > writer = vtkSmartPointer< vtkMetaImageWriter >::New();
-        string outfile = bplotdatanames[i] + ".mhd";
-        writer->SetFileName(outfile.c_str());
-        writer->SetInputData(img);
-        writer->Write();*/
     }
 
-    /*typedef itk::LabelContourImageFilter< ImageType, ImageType > LabelContourFilterType;
-    LabelContourFilterType::Pointer labelcontour = LabelContourFilterType::New();
-    labelcontour->SetInput(resimg);
-    labelcontour->SetFullyConnected(true);
-    labelcontour->Update();
-    resimg = labelcontour->GetOutput();*/
+
 
     ImageIteratorType resit(resimg, resimg->GetLargestPossibleRegion());
     resit.GoToBegin();
@@ -344,6 +334,7 @@ int main(int argv, char** argc){
 
     boxplot->GetPointData()->AddArray(bplotdatanames);
     boxplot->GetPointData()->AddArray(bplotarea);
+    boxplot->GetPointData()->AddArray(bplotperimeter);
 
     vtkSmartPointer<vtkPoints> boxplotpoints = vtkSmartPointer<vtkPoints>::New();
     vtkSmartPointer<vtkUnsignedShortArray> labelarray = vtkSmartPointer<vtkUnsignedShortArray>::New();

@@ -181,6 +181,34 @@ int SPINEContoursReader::RequestData(
                     }
 
                 }
+
+                if(XMLString::compareString(contourNodes->item(j)->getNodeName(), XMLString::transcode("perimeter")) == 0){
+                    DOMNodeList* perimeternodes = parser->getDocument()->getElementsByTagName(XMLString::transcode("perimeter"));
+                    if(perimeternodes){
+
+                        vtkSmartPointer<vtkDoubleArray> bplotperimeters = vtkSmartPointer<vtkDoubleArray>::New();
+                        bplotperimeters->SetName("boxplotsperimeter");
+
+                        XMLSize_t size = perimeternodes->getLength();
+
+                        for(XMLSize_t i = 0; i < size; i++){
+                            DOMNode* perimeternode = perimeternodes->item(i);
+                            for(unsigned j = 0; j < _bplotnames->GetNumberOfValues(); j++){
+                                string name = _bplotnames->GetValue(j);
+                                double perimeter = atof(XMLString::transcode(perimeternode->getAttributes()->getNamedItem(X(name.c_str()))->getNodeValue()));
+                                bplotperimeters->InsertNextValue(perimeter);
+                                //cout<<name<<" "<< area<<endl;
+
+
+                            }
+
+                        }
+
+                        vtkcontour->GetPointData()->AddArray(_bplotnames);
+                        vtkcontour->GetPointData()->AddArray(bplotperimeters);
+                    }
+
+                }
             }
 
             m_Output->AddItem(vtkcontour);

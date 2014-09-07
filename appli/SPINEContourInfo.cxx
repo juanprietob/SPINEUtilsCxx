@@ -96,49 +96,28 @@ int main(int argv, char** argc){
 
         vtkPolyData* nextpoly = contours->GetNextPolyData(it);
 
-        if(nextpoly->GetPointData()->GetAbstractArray("boxplotsarea") && nextpoly->GetPointData()->GetAbstractArray("boxplotsname")){
+        if(nextpoly->GetPointData()->GetAbstractArray("boxplotsarea") && nextpoly->GetPointData()->GetAbstractArray("boxplotsname") && nextpoly->GetPointData()->GetAbstractArray("boxplotsperimeter")){
             vtkStringArray* bplotsname = dynamic_cast<vtkStringArray*>(nextpoly->GetPointData()->GetAbstractArray("boxplotsname"));
             vtkDoubleArray* bplotsarea = dynamic_cast<vtkDoubleArray*>(nextpoly->GetPointData()->GetAbstractArray("boxplotsarea"));
+            vtkDoubleArray* bplotsperimeter = dynamic_cast<vtkDoubleArray*>(nextpoly->GetPointData()->GetAbstractArray("boxplotsperimeter"));
 
-            cout<<"{"<<endl;
+            cout<<"["<<endl;
             for(unsigned i = 0; i < bplotsname->GetNumberOfValues(); i++){
-
-                cout<<"\""<<bplotsname->GetValue(i)<<"\":"<<"\""<<bplotsarea->GetValue(i)<<"\"";
+                cout<<"{"<<"\"id:\""<<"\""<<bplotsname->GetValue(i)<<"\", ";
+                cout<<"{\"area\":"<<"\""<<bplotsarea->GetValue(i)<<"\", ";
+                cout<<"\"perimeter\":"<<"\""<<bplotsperimeter->GetValue(i)<<"\"}}";
                 if(i < bplotsname->GetNumberOfValues() - 1){
                     cout<<",";
                 }
                 cout<<endl;
 
             }
-            cout<<"}"<<endl;
+            cout<<"]"<<endl;
 
-        }else{
-            vtkSmartPointer<SPINEContoursInterpolation> interpolation = vtkSmartPointer<SPINEContoursInterpolation>::New();
-            interpolation->SetInputData(nextpoly);
-
-            interpolation->Update();
-
-            vectorinterpolation.push_back(interpolation);
-
-            double bounds[6];
-
-            nextpoly->GetBounds(bounds);
-
-            for(int j = 0; j < 6; j+=2){
-                if(bounds[j] < contourBB[j]){
-                    contourBB[j] = bounds[j];
-                }
-            }
-
-            for(int j = 1; j < 6; j+=2){
-                if(bounds[j] > contourBB[j]){
-                    contourBB[j] = bounds[j];
-                }
-            }
         }
     }
 
-    /*cout<<"{";
+    cout<<"[";
     for(unsigned i = 0; i < contours->GetNumberOfItems(); i++){
 
         vtkPolyData* nextpoly = contours->GetNextPolyData(it);
@@ -148,13 +127,16 @@ int main(int argv, char** argc){
         contourinterpolation->Update();
 
         cout<<"{\"id\": \""<<i<<"\", ";
-        cout<<"\"area\": \""<<contourinterpolation->GetArea()<<"\", ";
+        cout<<"{\"area\": \""<<contourinterpolation->GetArea()<<"\", ";
         cout<<"\"perimeter\": \""<<contourinterpolation->GetContourLength()<<"\"";
-        cout<<"}";
+        cout<<"}}";
+
+        if(i < contours->GetNumberOfItems() - 1){
+            cout<<","<<endl;
+        }
 
     }
-    cout<<"}";
-    cout<<endl;*/
+    cout<<"]"<<endl;
 
     if(vectorinterpolation.size() > 2){
         vector< vtkSmartPointer<vtkImageData> > imagevector;
@@ -257,7 +239,7 @@ int main(int argv, char** argc){
         vtkSmartPointer< vtkDoubleArray > bplotarea = vtkSmartPointer< vtkDoubleArray >::New();
         bplotarea->SetName("boxplotsarea");
 
-        cout<<"{"<<endl;
+        cout<<"["<<endl;
         for(unsigned i = 0; i < bplotdata.size(); i++){
 
             ImageType::Pointer img = ImageType::New();
@@ -327,7 +309,7 @@ int main(int argv, char** argc){
 
 
         }
-        cout<<"}"<<endl;
+        cout<<"]"<<endl;
 
         delete data;
     }
