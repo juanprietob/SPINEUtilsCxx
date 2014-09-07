@@ -17,3 +17,5 @@ Image manipulation: Resample images to RAS space.
 
 Requirements:
 ITK, VTK, Xerces, CMake
+
+ITK option for support version 3 must be on -> ITKV3_COMPATIBILITY ON
