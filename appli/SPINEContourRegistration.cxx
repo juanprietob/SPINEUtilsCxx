@@ -140,9 +140,6 @@ int main(int argv, char** argc){
         if (dim[i] < 1){
             dim[i] = 1;
         }
-        if (dim[i] == 1){
-            spacing[i] = 1;
-        }
     }
 
     double origin[3];
@@ -207,7 +204,7 @@ int main(int argv, char** argc){
 
     vector< double* > bplotdata;
 
-    unsigned short minVal = 0, maxVal = 5;//Background value and minBd value
+    unsigned short minVal = 0;//Background value and minBd value
     bplotdata.push_back(maxBd);
     bplotdata.push_back(sup);
     bplotdata.push_back(med);
@@ -235,7 +232,7 @@ int main(int argv, char** argc){
     typedef itk::Image< unsigned short, 3> ImageType;
     typedef itk::ImageRegionIterator< ImageType > ImageIteratorType;
 
-    ImageType::Pointer resimg = ImageType::New();
+
 
     ImageType::RegionType region;
     itk::Size<3> size;
@@ -244,29 +241,30 @@ int main(int argv, char** argc){
     size.SetElement(2, dim[2]);
     region.SetSize(size);
 
+    ImageType::Pointer resimg = ImageType::New();
     resimg->SetRegions(region);
     resimg->SetSpacing(spacing);
     resimg->SetOrigin(origin);
     resimg->Allocate();
     resimg->FillBuffer(0);
 
+    ImageType::Pointer resimgPerim = ImageType::New();
+    resimgPerim->SetRegions(region);
+    resimgPerim->SetSpacing(spacing);
+    resimgPerim->SetOrigin(origin);
+    resimgPerim->Allocate();
+    resimgPerim->FillBuffer(0);
+
 
     vtkSmartPointer< vtkDoubleArray > bplotarea = vtkSmartPointer< vtkDoubleArray >::New();
     bplotarea->SetName("boxplotsarea");
 
     vtkSmartPointer< vtkDoubleArray > bplotperimeter = vtkSmartPointer< vtkDoubleArray >::New();
-    bplotarea->SetName("boxplotsperimeter");
+    bplotperimeter->SetName("boxplotsperimeter");
     for(unsigned i = 0; i < bplotdata.size(); i++){
 
 
         ImageType::Pointer img = ImageType::New();
-
-        ImageType::RegionType region;
-        itk::Size<3> size;
-        size.SetElement(0, dim[0]);
-        size.SetElement(1, dim[1]);
-        size.SetElement(2, dim[2]);
-        region.SetSize(size);
 
         img->SetRegions(region);
         img->SetSpacing(spacing);
@@ -278,20 +276,15 @@ int main(int argv, char** argc){
         ImageIteratorType it(img, img->GetLargestPossibleRegion());
         it.GoToBegin();
 
-        ImageIteratorType itres(resimg, resimg->GetLargestPossibleRegion());
-        itres.GoToBegin();
-
         int j = 0;
         double numpix = 0;
-        while(!it.IsAtEnd() && j < pDim && !itres.IsAtEnd()){
+        while(!it.IsAtEnd() && j < pDim){
             it.Set(bplotdata[i][j]);
-            itres.Set(bplotdata[i][j]*(i+1));
             if(bplotdata[i][j] != 0){
                 numpix++;
             }
             j++;
             ++it;
-            ++itres;
         }
 
         numpix = numpix*spacing[0]*spacing[1]*spacing[2];
@@ -306,22 +299,64 @@ int main(int argv, char** argc){
             ContourDetectionFilter::Pointer contourFilter = ContourDetectionFilter::New();
             contourFilter->SetInput(img);
             contourFilter->Update();
-            img = contourFilter->GetOutput();
+            ImageType::Pointer perimg = contourFilter->GetOutput();
 
-            ImageIteratorType it(img, img->GetLargestPossibleRegion());
+            ImageIteratorType it(perimg, perimg->GetLargestPossibleRegion());
             it.GoToBegin();
             numpix = 0;
+
+            ImageIteratorType resperimit(resimgPerim, resimgPerim->GetLargestPossibleRegion());
+            resperimit.GoToBegin();
+
             while(!it.IsAtEnd()){
                 if(it.Get() != 0){
                     numpix++;
                 }
+
+                if(resperimit.Get() == 0){
+                    resperimit.Set(i+1);
+                }
                 ++it;
+                ++resperimit;
             }
             perimeter = numpix*spacing[0];
             bplotperimeter->InsertNextValue(perimeter);
             //cout<<", "<<numpix<<", "<<sqrt(pow(spacing[0], 2) + pow(spacing[1], 2));
 
         }
+
+        if(i == bplotdata.size() - 1){
+
+            ImageIteratorType it(img, img->GetLargestPossibleRegion());
+            it.GoToBegin();
+            ImageIteratorType resit(resimg, resimg->GetLargestPossibleRegion());
+            resit.GoToBegin();
+
+            while(!it.IsAtEnd()){
+                if(it.Get() != 0){
+                    resit.Set(0);
+                }
+                ++it;
+                ++resit;
+            }
+
+        }else{
+            typedef itk::AddImageFilter< ImageType > AddImageFilterType;
+            AddImageFilterType::Pointer addimage = AddImageFilterType::New();
+            addimage->SetInput1(resimg);
+            addimage->SetInput2(img);
+            addimage->Update();
+            resimg = addimage->GetOutput();
+        }
+
+
+        /*char out[50];
+        sprintf(out, "boxPlot%d.nii.gz", i);
+        typedef itk::ImageFileWriter< ImageType > ImageFileWriterType;
+        ImageFileWriterType::Pointer writer = ImageFileWriterType::New();
+        writer->SetInput(img);
+        writer->SetFileName(out);
+        writer->Update();*/
 
     }
 
@@ -341,7 +376,7 @@ int main(int argv, char** argc){
     labelarray->SetName("labels");
 
     while(!resit.IsAtEnd()){
-        if(resit.Get() != minVal && resit.Get() != maxVal){
+        if(resit.Get() != minVal){
             ImageType::PointType physpoint;
             resimg->TransformIndexToPhysicalPoint(resit.GetIndex(), physpoint);
             boxplotpoints->InsertNextPoint(physpoint[0], physpoint[1], physpoint[2]);
@@ -361,8 +396,8 @@ int main(int argv, char** argc){
     contourwriter->SetContoursType("boxplots");
     contourwriter->Write();
 
-    /*
-    string outfilename = "outBPlot.nii.gz";
+
+    /*string outfilename = "outBPlot.nii.gz";
     typedef itk::ImageFileWriter< ImageType > ImageFileWriterType;
     ImageFileWriterType::Pointer writer = ImageFileWriterType::New();
     writer->SetInput(resimg);
