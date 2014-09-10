@@ -277,23 +277,23 @@ int main(int argv, char** argc){
 
         ImageIteratorType it(img, img->GetLargestPossibleRegion());
         it.GoToBegin();
+
+        ImageIteratorType itres(resimg, resimg->GetLargestPossibleRegion());
+        itres.GoToBegin();
+
         int j = 0;
         double numpix = 0;
-        while(!it.IsAtEnd() && j < pDim){
+        while(!it.IsAtEnd() && j < pDim && !itres.IsAtEnd()){
             it.Set(bplotdata[i][j]);
+            itres.Set(bplotdata[i][j]*(i+1));
             if(bplotdata[i][j] != 0){
                 numpix++;
             }
             j++;
             ++it;
+            ++itres;
         }
 
-        typedef itk::AddImageFilter< ImageType > AddImageFilterType;
-        AddImageFilterType::Pointer addimage = AddImageFilterType::New();
-        addimage->SetInput1(resimg);
-        addimage->SetInput2(img);
-        addimage->Update();
-        resimg = addimage->GetOutput();
         numpix = numpix*spacing[0]*spacing[1]*spacing[2];
 
         bplotarea->InsertNextValue(numpix);
