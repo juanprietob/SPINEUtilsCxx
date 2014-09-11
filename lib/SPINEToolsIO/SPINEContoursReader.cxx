@@ -36,11 +36,11 @@ SPINEContoursReader::SPINEContoursReader()
 
   _bplotnames = vtkSmartPointer<vtkStringArray>::New();
   _bplotnames->SetName("boxplotsname");
-  _bplotnames->InsertValue(0, "maxBd");
+  _bplotnames->InsertValue(0, "max");
   _bplotnames->InsertValue(1, "sup");
   _bplotnames->InsertValue(2, "med");
   _bplotnames->InsertValue(3, "inf");
-  _bplotnames->InsertValue(4, "minBd");
+  _bplotnames->InsertValue(4, "min");
 }
 
 //----------------------------------------------------------------------------
