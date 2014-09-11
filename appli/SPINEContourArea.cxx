@@ -42,10 +42,11 @@ int main(int argv, char** argc){
         contourinterpolation->SetInputData(nextpoly);
         contourinterpolation->Update();
 
-        cout<<"{\"id\": \""<<i<<"\", ";
+        /*cout<<"{\"id\": \""<<i<<"\", ";
         cout<<"\"area\": \""<<contourinterpolation->GetArea()<<"\", ";
         cout<<"\"perimeter\": \""<<contourinterpolation->GetContourLength()<<"\"";
-        cout<<"}";
+        cout<<"}";*/
+        cout<<contourinterpolation->GetArea();
 
     }
     cout<<"]";
