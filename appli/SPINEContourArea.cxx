@@ -33,7 +33,7 @@ int main(int argv, char** argc){
     vtkCollectionSimpleIterator it;
     contours->InitTraversal(it);
 
-    cout<<"[";
+    //cout<<"[";
     for(unsigned i = 0; i < contours->GetNumberOfItems(); i++){
 
         vtkPolyData* nextpoly = contours->GetNextPolyData(it);
@@ -47,9 +47,12 @@ int main(int argv, char** argc){
         cout<<"\"perimeter\": \""<<contourinterpolation->GetContourLength()<<"\"";
         cout<<"}";*/
         cout<<contourinterpolation->GetArea();
+        if(i < contours->GetNumberOfItems() - 1){
+            cout<<"; ";
+        }
 
     }
-    cout<<"]";
+    //cout<<"]";
     cout<<endl;
 
 
