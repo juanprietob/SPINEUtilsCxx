@@ -214,11 +214,11 @@ int main(int argv, char** argc){
 
     vtkSmartPointer<vtkStringArray> bplotdatanames = vtkSmartPointer<vtkStringArray>::New();
     bplotdatanames->SetName("boxplotsname");
-    bplotdatanames->InsertValue(0, "maxBd");
+    bplotdatanames->InsertValue(0, "max");
     bplotdatanames->InsertValue(1, "sup");
     bplotdatanames->InsertValue(2, "med");
     bplotdatanames->InsertValue(3, "inf");
-    bplotdatanames->InsertValue(4, "minBd");
+    bplotdatanames->InsertValue(4, "min");
     /*bplotdatanames.push_back("maxBd");
     bplotdatanames.push_back("sup");
     bplotdatanames.push_back("med");

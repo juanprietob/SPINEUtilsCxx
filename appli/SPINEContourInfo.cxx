@@ -88,7 +88,7 @@ int main(int argv, char** argc){
     vtkCollectionSimpleIterator it;
     contours->InitTraversal(it);
 
-    cout<<"[";
+    cout<<"["<<endl;
     for(unsigned i = 0; i < contours->GetNumberOfItems(); i++){
 
         vtkPolyData* nextpoly = contours->GetNextPolyData(it);
@@ -100,16 +100,15 @@ int main(int argv, char** argc){
 
 
             for(unsigned i = 0; i < bplotsname->GetNumberOfValues(); i++){
-                cout<<"{"<<"\"id:\""<<"\""<<bplotsname->GetValue(i)<<"\", ";
-                cout<<"{\"area\":"<<"\""<<bplotsarea->GetValue(i)<<"\", ";
-                cout<<"\"perimeter\":"<<"\""<<bplotsperimeter->GetValue(i)<<"\"}}";
+                cout<<"{"<<"\"id\" : "<<"\""<<bplotsname->GetValue(i)<<"\", ";
+                cout<<"{\"area\": "<<"\""<<bplotsarea->GetValue(i)<<"\", ";
+                cout<<"\"perimeter\" : "<<"\""<<bplotsperimeter->GetValue(i)<<"\"}}";
                 if(i < bplotsname->GetNumberOfValues() - 1){
                     cout<<",";
                 }
                 cout<<endl;
 
             }
-            cout<<"]"<<endl;
 
         }else if(!(nextpoly->GetPointData()->GetAbstractArray("boxplotsname"))){
 
@@ -117,9 +116,9 @@ int main(int argv, char** argc){
             contourinterpolation->SetInputData(nextpoly);
             contourinterpolation->Update();
 
-            cout<<"{\"id\": \""<<i<<"\", ";
-            cout<<"{\"area\": \""<<contourinterpolation->GetArea()<<"\", ";
-            cout<<"\"perimeter\": \""<<contourinterpolation->GetContourLength()<<"\"";
+            cout<<"{\"id\" : \""<<i<<"\", ";
+            cout<<"{\"area\" : \""<<contourinterpolation->GetArea()<<"\", ";
+            cout<<"\"perimeter\" : \""<<contourinterpolation->GetContourLength()<<"\"";
             cout<<"}}";
         }
 
