@@ -33,6 +33,7 @@ int main(int argv, char** argc){
     vtkCollectionSimpleIterator it;
     contours->InitTraversal(it);
 
+    cout<<argc[1]<<"; ";
     //cout<<"[";
     for(unsigned i = 0; i < contours->GetNumberOfItems(); i++){
 
