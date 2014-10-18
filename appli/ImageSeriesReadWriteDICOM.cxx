@@ -54,7 +54,7 @@ void help(char* exec){
     cerr<<"Usage: "<<exec<<" -d <folder with dicom> -o <output filename> ex: "<<exec<<" -d <patient path>/T2/"<<endl;
     cerr<<"Options: "<<endl;
     cerr<<"-f <input filename> instead of a dicom image use another image file, ex: <some path>/img.nii.gz"<<endl;
-    cerr<<"-resample <bool> Resample the image to ras space, ex: -resample 0 (default 1)."<<endl;
+    cerr<<"-resample <bool> Resample the image to ras space (default 1), ex: -resample 0"<<endl;
 }
 
 int main( int argc, char ** argv )
