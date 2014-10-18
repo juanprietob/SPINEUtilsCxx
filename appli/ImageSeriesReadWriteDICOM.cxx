@@ -54,6 +54,7 @@ void help(char* exec){
     cerr<<"Usage: "<<exec<<" -d <folder with dicom> -o <output filename> ex: "<<exec<<" -d <patient path>/T2/"<<endl;
     cerr<<"Options: "<<endl;
     cerr<<"-f <input filename> instead of a dicom image use another image file, ex: <some path>/img.nii.gz"<<endl;
+    cerr<<"-resample <bool> Resample the image to ras space, ex: -resample 0 (default 1)."<<endl;
 }
 
 int main( int argc, char ** argv )
@@ -62,6 +63,7 @@ int main( int argc, char ** argv )
   string dirName = "";
   string outputFileName = "";
   string filename = "";
+  bool resample = true;
 
 
   for(int i = 1; i < argc - 1; i++){
@@ -72,6 +74,8 @@ int main( int argc, char ** argv )
           outputFileName = string(argv[i+1]);
       }else if(param == "-f"){
           filename = string(argv[i+1]);
+      }else if(param == "-resample"){
+          resample = atoi(argv[i+1]);
       }
   }
 
@@ -153,24 +157,23 @@ int main( int argc, char ** argv )
   // We connect the output of the reader to the input of the writer.
   //
   // Software Guide : EndLatex
-  itk::OrientImageFilter<ImageType,ImageType>::Pointer orienter = itk::OrientImageFilter<ImageType,ImageType>::New();
+  if(resample){
+      itk::OrientImageFilter<ImageType,ImageType>::Pointer orienter = itk::OrientImageFilter<ImageType,ImageType>::New();
 
-  itk::Matrix<double, 3, 3> ident;
-  ident.SetIdentity();
-  ident[0][0] = -1;
-  ident[1][1] = -1;
+      itk::Matrix<double, 3, 3> ident;
+      ident.SetIdentity();
+      ident[0][0] = -1;
+      ident[1][1] = -1;
 
-  //orienter->SetDesiredCoordinateOrientation(itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAS);
-  orienter->SetDesiredCoordinateDirection(ident);
-  orienter->SetUseImageDirection(true);
+      //orienter->SetDesiredCoordinateOrientation(itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAS);
+      orienter->SetDesiredCoordinateDirection(ident);
+      orienter->SetUseImageDirection(true);
 
-  orienter->SetInput(resimage);
-  orienter->Update();
-  resimage = orienter->GetOutput();
-
-
-  resimage->SetDirection(ident);
-
+      orienter->SetInput(resimage);
+      orienter->Update();
+      resimage = orienter->GetOutput();
+      resimage->SetDirection(ident);
+  }
   // Software Guide : BeginCodeSnippet
 
   cout<<endl<<"{\"outputFilename\": \""<<outputFileName<<"\"}"<<endl;

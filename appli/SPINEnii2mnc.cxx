@@ -55,12 +55,12 @@ int main( int argc, char ** argv )
   }
 
   if(outfilename.compare("") == 0){
-      if(filename.find("nii.gz")  != string::npos ){
-          outfilename = filename.substr(0, filename.find(".nii.gz"));
-      }else if(filename.find("nii") != string::npos){
-          outfilename = filename.substr(0, filename.find(".nii"));
+      if(filename.find_last_of(".nii.gz")  != string::npos ){
+          outfilename = filename.substr(0, filename.find_last_of(".nii.gz") - 6);
+      }else if(filename.find_last_of(".nii") != string::npos){
+          outfilename = filename.substr(0, filename.find_last_of(".nii") - 3);
       }else{
-          outfilename = filename.substr(0, filename.find_last_of("."));
+          outfilename = filename.substr(0, filename.find_last_of(".") - 1);
       }
       outfilename.append(".mnc");
   }
