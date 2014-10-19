@@ -100,7 +100,7 @@ int main(int argv, char** argc){
 
 
             for(unsigned i = 0; i < bplotsname->GetNumberOfValues(); i++){
-                cout<<"{"<<"\"id\" : "<<"\""<<bplotsname->GetValue(i)<<"\", ";
+                cout<<"{ \""<<bplotsname->GetValue(i)<<"\": ";
                 cout<<"{\"area\": "<<"\""<<bplotsarea->GetValue(i)<<"\", ";
                 cout<<"\"perimeter\" : "<<"\""<<bplotsperimeter->GetValue(i)<<"\"}}";
                 if(i < bplotsname->GetNumberOfValues() - 1){
@@ -116,7 +116,7 @@ int main(int argv, char** argc){
             contourinterpolation->SetInputData(nextpoly);
             contourinterpolation->Update();
 
-            cout<<"{\"id\" : \""<<i<<"\", ";
+            cout<<"{\""<<i<<"\": ";
             cout<<"{\"area\" : \""<<contourinterpolation->GetArea()<<"\", ";
             cout<<"\"perimeter\" : \""<<contourinterpolation->GetContourLength()<<"\"";
             cout<<"}}";
