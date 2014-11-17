@@ -51,12 +51,12 @@
 using namespace std;
 
 void help(char* exec){
-    cout<<"Usage: "<<exec<<" -f <First file of Genesis stack> ex: "<<exec<<" -f <patient path>/T2/I.001"<<endl;
-    cout<<"Output: The output filename is calculated from the directory. ex: <patient path>/T2.nii.gz"<<endl;
-    cout<<"Options: "<<endl;
-    cout<<"-it <input format> ex -it dicom"<<endl;
-    cout<<"-o <Output filename>"<<endl;
-    cout<<"\n\t SPINE related SPINEUtils: -r <root dir>, used for DB insertion in table ModuleData. The last directory of <root dir> is used as the name identifier."<<endl;
+    cerr<<"Usage: "<<exec<<" -f <First file of Genesis stack> ex: "<<exec<<" -f <patient path>/T2/I.001"<<endl;
+    cerr<<"Output: The output filename is calculated from the directory. ex: <patient path>/T2.nii.gz"<<endl;
+    cerr<<"Options: "<<endl;
+    cerr<<"-it <input format> ex -it dicom"<<endl;
+    cerr<<"-o <Output filename>"<<endl;
+    cerr<<"\n\t SPINE related SPINEUtils: -r <root dir>, used for DB insertion in table ModuleData. The last directory of <root dir> is used as the name identifier."<<endl;
 }
 
 int main( int argc, char ** argv )
@@ -203,8 +203,8 @@ int main( int argc, char ** argv )
       try{
           resimage = reader->GetOutput();
       }catch(itk::ExceptionObject & err ){
-          cout << "ERROR: " <<firstSliceName<<endl;
-          cout<< err << endl;
+          cerr << "ERROR: " <<firstSliceName<<endl;
+          cerr<< err << endl;
           return EXIT_FAILURE;
       }
   }
@@ -254,8 +254,8 @@ int main( int argc, char ** argv )
     writer->Update();
   }catch( itk::ExceptionObject & err )
     {
-    cout << "ERROR: " <<rootDir<<"/"<<imagetype<<endl;
-    cout<< err << endl;
+    cerr << "ERROR: " <<rootDir<<"/"<<imagetype<<endl;
+    cerr<< err << endl;
     return EXIT_FAILURE;
     }
   // Software Guide : EndCodeSnippet

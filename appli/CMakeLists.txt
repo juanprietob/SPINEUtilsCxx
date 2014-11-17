@@ -15,14 +15,21 @@ add_executable(SimpleRegionGrowingSegmentation   SimpleRegionGrowingSegmentation
 target_link_libraries(SimpleRegionGrowingSegmentation ${ITK_LIBRARIES} ${XERCES_LIBRARIES})
 
 SET(EXE_NAME ImageSeriesReadWriteDICOM)
-add_executable(${EXE_NAME}   ImageSeriesReadWriteDICOM.cxx)
+add_executable(${EXE_NAME}   ${EXE_NAME}.cxx)
 target_link_libraries(${EXE_NAME} ${ITK_LIBRARIES})
 install(TARGETS ${EXE_NAME}
         RUNTIME
         DESTINATION bin)
 
 SET(EXE_NAME SPINENii2Mnc)
-add_executable(${EXE_NAME}   SPINENii2Mnc.cxx)
+add_executable(${EXE_NAME}   ${EXE_NAME}.cxx)
+target_link_libraries(${EXE_NAME} ${ITK_LIBRARIES})
+install(TARGETS ${EXE_NAME}
+        RUNTIME
+        DESTINATION bin)
+
+SET(EXE_NAME SPINENii2StreamMnc)
+add_executable(${EXE_NAME}   ${EXE_NAME}.cxx)
 target_link_libraries(${EXE_NAME} ${ITK_LIBRARIES})
 install(TARGETS ${EXE_NAME}
         RUNTIME
