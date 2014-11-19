@@ -3,6 +3,9 @@
 #include "itkImageFileWriter.h"
 #include "itkImageFileReader.h"
 #include "itkImageRegionIterator.h"
+#include "itkCastImageFilter.h"
+#include "itkRescaleIntensityImageFilter.h"
+#include "itkNormalizeImageFilter.h"
 
 
 using namespace std;
@@ -65,6 +68,8 @@ int main( int argc, char ** argv )
   reader->SetFileName( filename.c_str() );
   reader->Update();
 
+
+
   ImageType::Pointer image = 0;
 
   try{
@@ -76,12 +81,33 @@ int main( int argc, char ** argv )
   return EXIT_FAILURE;
   }
 
+  typedef unsigned char OutputPixelType;
+  typedef itk::Image< OutputPixelType, dimension > OutputImageType;
+  /*typedef itk::CastImageFilter<ImageType, OutputImageType > CastImageType;
+  CastImageType::Pointer cast = CastImageType::New();
+  cast->SetInput(image);
+  cast->Update();
+  OutputImageType::Pointer outimage = cast->GetOutput();*/
+
+  typedef itk::RescaleIntensityImageFilter< ImageType, OutputImageType > RescaleType;
+  RescaleType::Pointer rescale = RescaleType::New();
+  rescale->SetInput( image );
+  rescale->SetOutputMinimum( 0 );
+  rescale->SetOutputMaximum( itk::NumericTraits< OutputPixelType >::max() );
+  rescale->Update();
+  OutputImageType::Pointer outimage = rescale->GetOutput();
+
+
+  //OutputImageType::Pointer outimage = image;
+  //cerr<<outimage<<endl;
+
+
   if(printHeader){
 
-      ImageType::DirectionType direction = image->GetDirection();
-      ImageType::SizeType size = image->GetLargestPossibleRegion().GetSize();
-      ImageType::PointType origin = image->GetOrigin();
-      ImageType::SpacingType spacing = image->GetSpacing();
+      OutputImageType::DirectionType direction = outimage->GetDirection();
+      OutputImageType::SizeType size = outimage->GetLargestPossibleRegion().GetSize();
+      OutputImageType::PointType origin = outimage->GetOrigin();
+      OutputImageType::SpacingType spacing = outimage->GetSpacing();
 
       vector<string> order;
       order.push_back("xspace");
@@ -90,9 +116,9 @@ int main( int argc, char ** argv )
 
       cout<<"{";
       cout<<"\"order\" : [";
-      for(unsigned i = 0; i < order.size(); i++){
+      for(int i = order.size() - 1; i >= 0; i--){
           cout<<"\"" + order[i] + "\"";
-          if(i < order.size() - 1){
+          if(i > 0){
               cout<<",";
           }
       }
@@ -120,14 +146,15 @@ int main( int argc, char ** argv )
   }
 
   if(printContent){
-      typedef itk::ImageRegionIterator<ImageType> IteratorType;
-      IteratorType it(image, image->GetLargestPossibleRegion());
+      typedef itk::ImageRegionIterator<OutputImageType> IteratorType;
+      IteratorType it(outimage, outimage->GetLargestPossibleRegion());
       it.GoToBegin();
-      int numt = sizeof(PixelType);
+      int numt = sizeof(OutputPixelType);
+      cerr<<"numt:"<<numt<<endl;
       char *v = new char[numt];
       while(!it.IsAtEnd()){
-          PixelType p = it.Get();
-          char* vpoint = (char*) &p;
+          OutputPixelType p = it.Get();
+          char* vpoint = (char*)(&p);
           for(int i = 0; i < numt; i++){
               v[i] = *vpoint;
               vpoint++;
