@@ -27,6 +27,8 @@ int main( int argc, char ** argv )
       }else if(param.compare("-o") == 0){
           outfilename = string(argv[i+1]);
       }
+
+
   }
 
   if(filename.compare("") == 0){
