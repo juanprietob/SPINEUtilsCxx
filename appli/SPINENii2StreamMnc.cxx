@@ -81,24 +81,24 @@ int main( int argc, char ** argv )
   return EXIT_FAILURE;
   }
 
-  typedef unsigned short OutputPixelType;
+  typedef unsigned char OutputPixelType;
   typedef itk::Image< OutputPixelType, dimension > OutputImageType;
-  /*typedef itk::CastImageFilter<ImageType, OutputImageType > CastImageType;
+  typedef itk::CastImageFilter<ImageType, OutputImageType > CastImageType;
   CastImageType::Pointer cast = CastImageType::New();
   cast->SetInput(image);
   cast->Update();
-  OutputImageType::Pointer outimage = cast->GetOutput();*/
+  OutputImageType::Pointer outimage = cast->GetOutput();
 
-  /*typedef itk::RescaleIntensityImageFilter< ImageType, OutputImageType > RescaleType;
+  typedef itk::RescaleIntensityImageFilter< ImageType, OutputImageType > RescaleType;
   RescaleType::Pointer rescale = RescaleType::New();
   rescale->SetInput( image );
   rescale->SetOutputMinimum( 0 );
   rescale->SetOutputMaximum( itk::NumericTraits< OutputPixelType >::max() );
   rescale->Update();
-  OutputImageType::Pointer outimage = rescale->GetOutput();*/
+  outimage = rescale->GetOutput();
 
 
-  OutputImageType::Pointer outimage = image;
+  //OutputImageType::Pointer outimage = image;
   //cerr<<outimage<<endl;
 
 
