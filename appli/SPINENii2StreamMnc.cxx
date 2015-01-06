@@ -12,7 +12,7 @@ using namespace std;
 
 void help(char* exec){
     cerr<<"Converts a nifti image to BrainBrowser format. The input image must be provided by the standart input,"<<endl;
-    cerr<<"ex. cat <imageFilename> | "<<string(exec)<<" -h"<<endl;
+    cerr<<"ex. cat image.nii.gz | "<<string(exec)<<" -h"<<endl;
     cerr<<"Usage: "<<exec<<endl;
     cerr<<"options: "<<endl;
     cerr<<"-h   Prints the header information in BB format to the standart output"<<endl;
@@ -26,13 +26,6 @@ int main( int argc, char ** argv )
   bool printHeader = false;
   bool printContent = false;
 
-  //string imagestring = "";
-  char c;
-  string str = "";
-  while(cin.get(c)){
-      str += c;
-  }
-
   for(int i = 1; i < argc; i++){
       string param = string(argv[i]);
       if(param.compare("-f") == 0){
@@ -44,9 +37,16 @@ int main( int argc, char ** argv )
       }
   }
 
-  if(str.compare("") == 0 || (!printHeader && !printContent)){
+  if(!printHeader && !printContent){
       help(argv[0]);
       return EXIT_FAILURE;
+  }
+
+  //string imagestring = "";
+  char c;
+  string str = "";
+  while(cin.get(c)){
+      str += c;
   }
 
   typedef unsigned short PixelType;
@@ -81,9 +81,12 @@ int main( int argc, char ** argv )
   return EXIT_FAILURE;
   }
 
-  typedef unsigned char OutputPixelType;
+  typedef unsigned short OutputPixelType;
   typedef itk::Image< OutputPixelType, dimension > OutputImageType;
-  typedef itk::CastImageFilter<ImageType, OutputImageType > CastImageType;
+  OutputImageType::Pointer outimage = image;
+
+
+  /*typedef itk::CastImageFilter<ImageType, OutputImageType > CastImageType;
   CastImageType::Pointer cast = CastImageType::New();
   cast->SetInput(image);
   cast->Update();
@@ -95,7 +98,7 @@ int main( int argc, char ** argv )
   rescale->SetOutputMinimum( 0 );
   rescale->SetOutputMaximum( itk::NumericTraits< OutputPixelType >::max() );
   rescale->Update();
-  outimage = rescale->GetOutput();
+  outimage = rescale->GetOutput();*/
 
 
   //OutputImageType::Pointer outimage = image;
@@ -110,15 +113,20 @@ int main( int argc, char ** argv )
       OutputImageType::SpacingType spacing = outimage->GetSpacing();
 
       vector<string> order;
-      order.push_back("xspace");
-      order.push_back("yspace");
       order.push_back("zspace");
+      order.push_back("yspace");
+      order.push_back("xspace");
+
+      vector<unsigned> orderindex;
+      orderindex.push_back(2);
+      orderindex.push_back(1);
+      orderindex.push_back(0);
 
       cout<<"{";
       cout<<"\"order\" : [";
-      for(int i = order.size() - 1; i >= 0; i--){
+      for(int i = 0; i < 3; i++){
           cout<<"\"" + order[i] + "\"";
-          if(i > 0){
+          if(i < 2){
               cout<<",";
           }
       }
@@ -128,20 +136,21 @@ int main( int argc, char ** argv )
           cout<<"\"" + order[i] + "\" : {";
           cout<<"\"direction_cosines\" : [";
           for(unsigned j = 0; j < 3; j++){
-              cout<<direction[i][j];
+              cout<<direction[orderindex[i]][j];
               if(j < 2){
                   cout<<",";
               }
           }
           cout<<"],";
-          cout<<"\"space_length\" : "<<size[i]<<",";
-          cout<<"\"start\" : "<<origin[i]<<",";
-          cout<<"\"step\" : " <<spacing[i];
+          cout<<"\"space_length\" : "<<size[orderindex[i]]<<",";
+          cout<<"\"start\" : "<<origin[orderindex[i]]<<",";
+          cout<<"\"step\" : " <<spacing[orderindex[i]];
           cout<<"}";
-          if(i < order.size() - 1){
+          //if(i < order.size() - 1){
               cout<<",";
-          }
+          //}
       }
+      cout<<"\"type\" : \"USHORT\""<<endl;
       cout<<"}"<<endl;
   }
 
@@ -150,7 +159,7 @@ int main( int argc, char ** argv )
       IteratorType it(outimage, outimage->GetLargestPossibleRegion());
       it.GoToBegin();
       int numt = sizeof(OutputPixelType);
-      cerr<<"numt:"<<numt<<endl;
+      //cerr<<"numt:"<<numt<<endl;
       char *v = new char[numt];
       while(!it.IsAtEnd()){
           OutputPixelType p = it.Get();

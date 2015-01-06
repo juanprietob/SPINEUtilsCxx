@@ -59,8 +59,6 @@ int main( int argc, char ** argv )
   reader->SetFileName( filename.c_str() );
   reader->Update();
 
-
-
   ImageType::Pointer image = 0;
 
   try{
@@ -80,7 +78,6 @@ int main( int argc, char ** argv )
       it.Set(0);
       ++it;
   }
-
   typedef itk::ImageFileWriter<ImageType> WriterType;
   WriterType::Pointer writer = WriterType::New();
   writer->SetFileName(filename.c_str());

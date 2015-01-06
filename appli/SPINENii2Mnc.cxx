@@ -7,7 +7,7 @@
 using namespace std;
 
 void help(char* exec){
-    cerr<<"Resample an image to RAS space, use this program to use with xtk tools."<<endl;
+    cerr<<"Convert an image to MNC format."<<endl;
     cerr<<"Usage: "<<exec<<" -f <input filename .nii.gz or .nii>"<<endl;
     cerr<<"Output: <filename>.mnc"<<endl;
     cerr<<"options: "<<endl;
