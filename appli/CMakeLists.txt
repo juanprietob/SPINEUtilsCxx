@@ -42,6 +42,13 @@ install(TARGETS ${EXE_NAME}
         RUNTIME
         DESTINATION bin)
 
+SET(EXE_NAME SPINEBBImage2Nii)
+add_executable(${EXE_NAME}   ${EXE_NAME}.cxx)
+target_link_libraries(${EXE_NAME} ${ITK_LIBRARIES} ${JSON_LIBRARIES})
+install(TARGETS ${EXE_NAME}
+        RUNTIME
+        DESTINATION bin)
+
 IF(${VTK_FOUND})
 
     SET(EXE_NAME SPINEAppendContours)

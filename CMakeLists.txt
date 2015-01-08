@@ -9,6 +9,10 @@ IF(${VTK_FOUND})
 	include(${VTK_USE_FILE})
 ENDIF(${VTK_FOUND})
 
+include(cmake/FindJSON.cmake)
+
+message(${JSON_INCLUDE_DIR})
+
 find_package(ITK REQUIRED)
 include(${ITK_USE_FILE})
 
