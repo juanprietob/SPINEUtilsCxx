@@ -6,7 +6,7 @@
 #include "itkCastImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkNormalizeImageFilter.h"
-
+#include "itkOrientImageFilter.h"
 
 using namespace std;
 
@@ -85,6 +85,13 @@ int main( int argc, char ** argv )
   typedef itk::Image< OutputPixelType, dimension > OutputImageType;
   OutputImageType::Pointer outimage = image;
 
+//  itk::OrientImageFilter<ImageType,ImageType>::Pointer orienter = itk::OrientImageFilter<ImageType,ImageType>::New();
+//  orienter->SetDesiredCoordinateOrientation(itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAS);
+//  orienter->SetUseImageDirection(true);
+
+//  orienter->SetInput(outimage);
+//  orienter->Update();
+//  outimage = orienter->GetOutput();
 
   /*typedef itk::CastImageFilter<ImageType, OutputImageType > CastImageType;
   CastImageType::Pointer cast = CastImageType::New();
