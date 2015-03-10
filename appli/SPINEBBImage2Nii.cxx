@@ -26,6 +26,7 @@ void help(char* exec){
     cerr<<"-help Prints help menu"<<endl;
     cerr<<"-f <json filename>"<<endl;
     cerr<<"-json <string json object>"<<endl;
+    cerr<<"-o <outputfilename>"<<endl;
 }
 
 void json_parse(json_object * jobj) {
@@ -44,6 +45,7 @@ int main( int argc, char ** argv )
 {
     string str = "";
     string inputFilename = "";
+    string outputFilename = "";
 
   for(int i = 1; i < argc; i++){
       string param = string(argv[i]);
@@ -54,7 +56,13 @@ int main( int argc, char ** argv )
           str=string(argv[i+1]);
       }else if(param.compare("-f") == 0 ){
           inputFilename=string(argv[i+1]);
+      }else if(param.compare("-o") == 0 ){
+          outputFilename=string(argv[i+1]);
       }
+  }
+   bool writeOutputFile = false;
+  if(outputFilename.compare("")!=0){
+      writeOutputFile = true;
   }
 
   if(inputFilename.compare("") != 0 && str.compare("") == 0){
@@ -155,10 +163,16 @@ int main( int argc, char ** argv )
       ++it;
   }
 
-  char buffer[] = "/tmp/SPINEXXXXXXX";
-  mktemp(buffer);
-  string filename = string(buffer);
-  filename.append(".nii.gz");
+  string filename = "";
+
+  if(writeOutputFile){
+      filename = outputFilename;
+  }else{
+      char buffer[] = "/tmp/SPINEXXXXXXX";
+      mktemp(buffer);
+      filename = string(buffer);
+      filename.append(".nii.gz");
+  }
 
   typedef itk::ImageFileWriter<ImageType> ImageWriter;
   ImageWriter::Pointer writer = ImageWriter::New();
@@ -166,14 +180,16 @@ int main( int argc, char ** argv )
   writer->SetInput(img);
   writer->Update();
 
-  ifstream tempInFile(filename.c_str());
-  char c;
-  while(tempInFile.get(c)){
-      cout<<c;
-  }
-  tempInFile.close();
+  if(!writeOutputFile){
+      ifstream tempInFile(filename.c_str());
+      char c;
+      while(tempInFile.get(c)){
+          cout<<c;
+      }
+      tempInFile.close();
 
-  remove(filename.c_str());
+      remove(filename.c_str());
+  }
 
   return EXIT_SUCCESS;
 }
