@@ -6,6 +6,7 @@
 #include "itkCastImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkNormalizeImageFilter.h"
+#include "itkOrientImageFilter.h"
 
 #include "json-c/json.h"
 
@@ -149,16 +150,30 @@ int main( int argc, char ** argv )
         dataarray = val;
     }
   }
-
   img->Allocate();
+
+  itk::OrientImageFilter<ImageType,ImageType>::Pointer orienter = itk::OrientImageFilter<ImageType,ImageType>::New();
+
+  itk::Matrix<double, 3, 3> ident;
+  ident.SetIdentity();
+  ident[0][0] = -1;
+  ident[1][1] = -1;
+
+  orienter->SetDesiredCoordinateDirection(ident);
+  orienter->SetUseImageDirection(true);
+
+  orienter->SetInput(img);
+  orienter->Update();
+  img = orienter->GetOutput();
+  img->SetDirection(ident);
 
   itk::ImageRegionIterator<ImageType> it(img, img->GetLargestPossibleRegion());
   it.GoToBegin();
   int i = 0;
   while(!it.IsAtEnd()){
       json_object *  jvalue = json_object_array_get_idx(dataarray, i);
-      int val = json_object_get_int(jvalue);
-      it.Set(val);
+      double val = json_object_get_double(jvalue);
+      it.Set((PixelType)val);
       i++;
       ++it;
   }
