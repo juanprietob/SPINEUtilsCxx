@@ -12,8 +12,10 @@
 using namespace std;
 
 void help(char* exec){
-    cerr<<"Converts a nifti image with the same size as the input image. The input image must be provided by the standart input, the output also goes to the standard output"<<endl;
-    cerr<<"ex. cat <imageFilename> | "<<string(exec)<<endl;
+    cerr<<"Calculates the number of voxels per label in a labeled volume. The output is a JSON doc with the volume of each structure."<<endl;
+    cerr<<"How to use: "<<string(exec)<<" -f <filename>"<<endl;
+    cerr<<"Using the standard input:"<<endl;
+    cerr<<"cat <imageFilename> | "<<string(exec)<<endl;
 }
 
 int main( int argc, char ** argv )
@@ -62,6 +64,10 @@ int main( int argc, char ** argv )
   reader->SetFileName( filename.c_str() );
   reader->Update();
 
+  if(isTempFile){
+      remove(filename.c_str());
+  }
+
   ImageType::Pointer image = 0;
 
   try{
@@ -77,30 +83,44 @@ int main( int argc, char ** argv )
   IteratorType it(image, image->GetLargestPossibleRegion());
   it.GoToBegin();
 
+  map<PixelType, int>  allImageLabels;
+
   while(!it.IsAtEnd()){
-      it.Set(0);
+      if(allImageLabels.find(it.Get()) == allImageLabels.end()){
+          allImageLabels[it.Get()] = 0;
+      }
+      allImageLabels[it.Get()] = allImageLabels[it.Get()] + 1;
       ++it;
   }
 
-  if(!isTempFile){
-      char buffer[] = "/tmp/SPINEXXXXXXX";
-      mktemp(buffer);
-      filename = string(buffer);
-      filename.append(".nii.gz");
+  cout<<"{"<<endl;
+  int n = 0;
+  int size = allImageLabels.size();
+  ImageType::SpacingType spacing = image->GetSpacing();
+  float spcvol = spacing[0]*spacing[1]*spacing[2];
+  cout<<std::fixed;
+  cout<<"\"spacing\" : ["<<spacing[0]<<","<<spacing[1]<<","<<spacing[2]<<"],"<<endl;
+
+  for (map<PixelType, int>::iterator it=allImageLabels.begin(); it!=allImageLabels.end(); ++it){
+
+      cout << "\""<< it->first << "\" : {";
+      cout<<"\"voxels\" : "<<it->second<<","<<endl;
+      float volume = it->second * spcvol;
+      cout<<"\"volume\" : "<<volume<<endl;
+      cout<<"}";
+      if(n < size -1){
+          cout<<",";
+      }
+      cout<<endl;
+      n++;
   }
 
-  typedef itk::ImageFileWriter<ImageType> WriterType;
-  WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName(filename.c_str());
-  writer->SetInput(image);
-  writer->Update();
+  cout<<"}"<<endl;
 
-  ifstream tempInFile(filename.c_str());
-  char c;
-  while(tempInFile.get(c)){
-      cout<<c;
-  }
-  tempInFile.close();
-  remove(filename.c_str());
+
   return EXIT_SUCCESS;
 }
+
+
+
+
