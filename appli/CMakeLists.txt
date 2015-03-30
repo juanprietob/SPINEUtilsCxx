@@ -59,7 +59,7 @@ install(TARGETS ${EXE_NAME}
 IF(${VTK_FOUND})
 
     SET(EXE_NAME SPINEAppendContours)
-    SET(${EXE_NAME}_LIBRARIES  SPINEToolsIO)
+    SET(${EXE_NAME}_LIBRARIES  SPINEToolsIO ${VTK_LIBRARIES})
     add_executable(${EXE_NAME}   ${EXE_NAME}.cxx)
     target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})
     install(TARGETS ${EXE_NAME}
@@ -67,7 +67,7 @@ IF(${VTK_FOUND})
             DESTINATION bin)
 
     SET(EXE_NAME SPINEContourRegistration)
-    SET(${EXE_NAME}_LIBRARIES  SPINEToolsIO SPINEToolsInterpolation Wfbplot SPINEFiltersVTK ${ITK_LIBRARIES})
+    SET(${EXE_NAME}_LIBRARIES  SPINEToolsIO SPINEToolsInterpolation Wfbplot SPINEFiltersVTK ${ITK_LIBRARIES} ${VTK_LIBRARIES})
     add_executable(${EXE_NAME}   ${EXE_NAME}.cxx)
     target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})
     install(TARGETS ${EXE_NAME}
@@ -76,7 +76,7 @@ IF(${VTK_FOUND})
 
 
     SET(EXE_NAME SPINEWfbplot)
-    SET(${EXE_NAME}_LIBRARIES  Wfbplot SPINEToolsIO)
+    SET(${EXE_NAME}_LIBRARIES  Wfbplot SPINEToolsIO ${VTK_LIBRARIES})
     add_executable(${EXE_NAME}   ${EXE_NAME}.cxx)
     target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})
     install(TARGETS ${EXE_NAME}
@@ -84,7 +84,7 @@ IF(${VTK_FOUND})
             DESTINATION bin)
 
     SET(EXE_NAME SPINEContourArea)
-    SET(${EXE_NAME}_LIBRARIES SPINEToolsIO SPINEToolsInterpolation)
+    SET(${EXE_NAME}_LIBRARIES SPINEToolsIO SPINEToolsInterpolation ${VTK_LIBRARIES})
     add_executable(${EXE_NAME}   ${EXE_NAME}.cxx)
     target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})
     install(TARGETS ${EXE_NAME}
@@ -92,7 +92,7 @@ IF(${VTK_FOUND})
             DESTINATION bin)        
 
     SET(EXE_NAME SPINEContourInfo)
-    SET(${EXE_NAME}_LIBRARIES SPINEToolsIO SPINEToolsInterpolation Wfbplot SPINEFiltersVTK)
+    SET(${EXE_NAME}_LIBRARIES SPINEToolsIO SPINEToolsInterpolation Wfbplot SPINEFiltersVTK ${VTK_LIBRARIES})
     add_executable(${EXE_NAME}   ${EXE_NAME}.cxx)
     target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})
     install(TARGETS ${EXE_NAME}
@@ -100,7 +100,7 @@ IF(${VTK_FOUND})
             DESTINATION bin)
 
     SET(EXE_NAME SPINEBoxplotsArea)
-    SET(${EXE_NAME}_LIBRARIES SPINEToolsIO SPINEToolsInterpolation Wfbplot ${ITK_LIBRARIES})
+    SET(${EXE_NAME}_LIBRARIES SPINEToolsIO SPINEToolsInterpolation Wfbplot ${ITK_LIBRARIES} ${VTK_LIBRARIES})
     add_executable(${EXE_NAME}   ${EXE_NAME}.cxx)
     target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})
     install(TARGETS ${EXE_NAME}
