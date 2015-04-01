@@ -19,6 +19,27 @@ You can find the following utilities:
 
 
 == Requirements:
-ITK, VTK, Xerces, CMake
+ITK, VTK, Xerces, CMake, json-c, gdcm
 
 ITK option for 'support version 3' must be on -> ITKV3_COMPATIBILITY ON
+
+=== GDCM
+
+To install GDCM please download the sources from the link:https://github.com/juanprietob/GDCM.git[git] repository 
+
+This program will dump the header of a DICOM file in JSON format. 
+It is more robust than the pydicom version used before. 
+GDCM is also used for image anonymization.
+
+Turn on the following variables when executing CMAKE for GDCM. Select 'Show advance settings' for some of these variables. 
+
+[source, CMAKE]
+----
+GDCM_BUILD_APPLICATIONS ON
+
+GDCM_USE_SYSTEM_OPENSSL ON
+----
+
+Compile and install GDCM.
+
+
