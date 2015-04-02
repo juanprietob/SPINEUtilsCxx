@@ -44,6 +44,8 @@
 #include "itkGDCMImageIO.h"
 #include "itkGDCMSeriesFileNames.h"
 #include "itkMetaDataObject.h"
+#include "itkThresholdImageFilter.h"
+#include "itkCastImageFilter.h"
 
 // Software Guide : EndCodeSnippet
 
@@ -55,6 +57,31 @@ void help(char* exec){
     cerr<<"Options: "<<endl;
     cerr<<"-f <input filename> instead of a dicom image use another image file, ex: <some path>/img.nii.gz"<<endl;
     cerr<<"-resample <bool> Resample the image to ras space (default 1), ex: -resample 0"<<endl;
+}
+
+const unsigned int InputDimension = 3;
+typedef double ReaderPixelType;
+typedef itk::Image< ReaderPixelType, InputDimension > ReaderImageType;
+typedef unsigned short PixelType;
+typedef itk::Image< PixelType, InputDimension > ImageType;
+
+ImageType::Pointer thresholdImageCast(ReaderImageType::Pointer image){
+
+    typedef itk::ThresholdImageFilter<ReaderImageType> ThresholdType;
+    ThresholdType::Pointer threshold = ThresholdType::New();
+
+    threshold->ThresholdOutside(0, 65536);
+    threshold->SetOutsideValue(0);
+    threshold->SetInput(image);
+    threshold->Update();
+
+    typedef itk::CastImageFilter<ReaderImageType, ImageType> CastFilter;
+    CastFilter::Pointer cast = CastFilter::New();
+    cast->SetInput(threshold->GetOutput());
+    cast->Update();
+
+    return cast->GetOutput();
+
 }
 
 int main( int argc, char ** argv )
@@ -87,23 +114,22 @@ int main( int argc, char ** argv )
       return 0;
   }
 
+  typedef double ReaderPixelType;
+  typedef itk::Image< ReaderPixelType, InputDimension > ReaderImageType;
+  typedef unsigned short PixelType;
+  typedef itk::Image< PixelType, InputDimension > ImageType;
 
-  const unsigned int InputDimension = 3;
-
-    typedef unsigned short PixelType;
-
-    typedef itk::Image< PixelType, InputDimension > ImageType;
-
-    typedef itk::ImageSeriesReader< ImageType > ReaderType;
-    typedef itk::GDCMImageIO ImageIOType;
-    typedef itk::GDCMSeriesFileNames InputNamesGeneratorType;
     typedef itk::ImageFileWriter< ImageType > ImageWriterType;
-  ImageType::Pointer resimage = 0;
+    ImageType::Pointer resimage = 0;
 
   if(dirName!=""){
 
       ////////////////////////////////////////////////
       // 1) Read the input series
+
+      typedef itk::ImageSeriesReader< ReaderImageType > ReaderType;
+      typedef itk::GDCMImageIO ImageIOType;
+      typedef itk::GDCMSeriesFileNames InputNamesGeneratorType;
 
         ImageIOType::Pointer gdcmIO = ImageIOType::New();
         InputNamesGeneratorType::Pointer inputNames = InputNamesGeneratorType::New();
@@ -128,20 +154,23 @@ int main( int argc, char ** argv )
 
 
       try{
-        resimage = reader->GetOutput();
+        ReaderImageType::Pointer image = reader->GetOutput();
+        resimage = thresholdImageCast(image);
+
       }catch( itk::ExceptionObject & err ){
           cerr<< err << endl;
           return EXIT_FAILURE;
       }
   }else{
-      typedef  itk::ImageFileReader<ImageType> ReaderType;
+      typedef  itk::ImageFileReader<ReaderImageType> ReaderType;
       ReaderType::Pointer reader = ReaderType::New();
       reader->SetFileName( filename.c_str() );
       reader->Update();
 
       try
         {
-            resimage = reader->GetOutput();
+            ReaderImageType::Pointer image = reader->GetOutput();
+            resimage = thresholdImageCast(image);
       }catch (itk::ExceptionObject &excp)
       {
       std::cerr << "Exception thrown while reading the image. " << filename <<std::endl;
