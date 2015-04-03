@@ -6,6 +6,7 @@
 #include "itkCastImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkNormalizeImageFilter.h"
+#include "itkOrientImageFilter.h"
 
 #include "json-c/json.h"
 
@@ -26,6 +27,7 @@ void help(char* exec){
     cerr<<"-help Prints help menu"<<endl;
     cerr<<"-f <json filename>"<<endl;
     cerr<<"-json <string json object>"<<endl;
+    cerr<<"-o <outputfilename>"<<endl;
 }
 
 void json_parse(json_object * jobj) {
@@ -44,6 +46,7 @@ int main( int argc, char ** argv )
 {
     string str = "";
     string inputFilename = "";
+    string outputFilename = "";
 
   for(int i = 1; i < argc; i++){
       string param = string(argv[i]);
@@ -54,7 +57,13 @@ int main( int argc, char ** argv )
           str=string(argv[i+1]);
       }else if(param.compare("-f") == 0 ){
           inputFilename=string(argv[i+1]);
+      }else if(param.compare("-o") == 0 ){
+          outputFilename=string(argv[i+1]);
       }
+  }
+   bool writeOutputFile = false;
+  if(outputFilename.compare("")!=0){
+      writeOutputFile = true;
   }
 
   if(inputFilename.compare("") != 0 && str.compare("") == 0){
@@ -83,8 +92,22 @@ int main( int argc, char ** argv )
 
   typedef unsigned short PixelType;
   static const int dimension = 3;
+  double spacing[3];
+  spacing[0] = 1;
+  spacing[1] = 1;
+  spacing[2] = 1;
+
+  double origin[3];
+  origin[0] = 0;
+  origin[1] = 0;
+  origin[2] = 0;
 
   typedef itk::Image< PixelType, dimension > ImageType;
+  ImageType::RegionType region;
+  ImageType::SizeType size;
+  ImageType::DirectionType dir;
+  dir.SetIdentity();
+
   ImageType::Pointer img = ImageType::New();
 
   json_object* dataarray;
@@ -94,71 +117,93 @@ int main( int argc, char ** argv )
         int arraylen = json_object_array_length(val);
         int i;
         json_object * jvalue;
-        double spacing[3];
+
         for (i=0; i< arraylen; i++){
             jvalue = json_object_array_get_idx(val, i);
             spacing[i] = json_object_get_double(jvalue);
         }
 
-        img->SetSpacing(spacing);
-
     }else if(string(key).compare("origin")==0){
         int arraylen = json_object_array_length(val);
         int i;
         json_object * jvalue;
-        double origin[3];
+
         for (i=0; i< arraylen; i++){
             jvalue = json_object_array_get_idx(val, i);
             origin[i] = json_object_get_double(jvalue);
         }
 
-        img->SetOrigin(origin);
+
     }else if(string(key).compare("size")==0){
         int arraylen = json_object_array_length(val);
         int i;
         json_object * jvalue;
-        ImageType::RegionType region;
-        ImageType::SizeType size;
+
         for (i=0; i< arraylen; i++){
             jvalue = json_object_array_get_idx(val, i);
             size[i] = json_object_get_int(jvalue);
         }
         region.SetSize(size);
-        img->SetRegions(region);
+
     }else if(string(key).compare("matrix") == 0){
         int arraylen = json_object_array_length(val);
         int i;
         json_object * jvalue;
-        ImageType::DirectionType dir;
-        dir.SetIdentity();
 
         for (i=0; i< arraylen; i++){
             jvalue = json_object_array_get_idx(val, i);
             dir[i%3][(int)i/3] = json_object_get_double(jvalue);
         }
-        img->SetDirection(dir);
+
     }else if(string(key).compare("data") == 0){
         dataarray = val;
     }
   }
 
+  //img->SetDirection(dir);
+  img->SetRegions(region);
   img->Allocate();
+
+//  itk::OrientImageFilter<ImageType,ImageType>::Pointer orienter = itk::OrientImageFilter<ImageType,ImageType>::New();
+
+//  orienter->SetDesiredCoordinateOrientation(itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_LPI);
+//  orienter->SetUseImageDirection(true);
+//  orienter->SetInput(img);
+//  orienter->Update();
+//  img = orienter->GetOutput();
+  itk::Matrix<double, 3, 3> ident;
+  ident.SetIdentity();
+  ident[0][0] = -1;
+  ident[1][1] = -1;
+
+  origin[0] = origin[0]*-1;
+  origin[1] = origin[1]*-1;
+
+  img->SetSpacing(spacing);
+  img->SetOrigin(origin);
+  img->SetDirection(ident);
 
   itk::ImageRegionIterator<ImageType> it(img, img->GetLargestPossibleRegion());
   it.GoToBegin();
   int i = 0;
   while(!it.IsAtEnd()){
       json_object *  jvalue = json_object_array_get_idx(dataarray, i);
-      int val = json_object_get_int(jvalue);
-      it.Set(val);
+      double val = json_object_get_double(jvalue);
+      it.Set((PixelType)val);
       i++;
       ++it;
   }
 
-  char buffer[] = "/tmp/SPINEXXXXXXX";
-  mktemp(buffer);
-  string filename = string(buffer);
-  filename.append(".nii.gz");
+  string filename = "";
+
+  if(writeOutputFile){
+      filename = outputFilename;
+  }else{
+      char buffer[] = "/tmp/SPINEXXXXXXX";
+      mktemp(buffer);
+      filename = string(buffer);
+      filename.append(".nii.gz");
+  }
 
   typedef itk::ImageFileWriter<ImageType> ImageWriter;
   ImageWriter::Pointer writer = ImageWriter::New();
@@ -166,14 +211,16 @@ int main( int argc, char ** argv )
   writer->SetInput(img);
   writer->Update();
 
-  ifstream tempInFile(filename.c_str());
-  char c;
-  while(tempInFile.get(c)){
-      cout<<c;
-  }
-  tempInFile.close();
+  if(!writeOutputFile){
+      ifstream tempInFile(filename.c_str());
+      char c;
+      while(tempInFile.get(c)){
+          cout<<c;
+      }
+      tempInFile.close();
 
-  remove(filename.c_str());
+      remove(filename.c_str());
+  }
 
   return EXIT_SUCCESS;
 }
