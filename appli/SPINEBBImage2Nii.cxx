@@ -92,8 +92,22 @@ int main( int argc, char ** argv )
 
   typedef unsigned short PixelType;
   static const int dimension = 3;
+  double spacing[3];
+  spacing[0] = 1;
+  spacing[1] = 1;
+  spacing[2] = 1;
+
+  double origin[3];
+  origin[0] = 0;
+  origin[1] = 0;
+  origin[2] = 0;
 
   typedef itk::Image< PixelType, dimension > ImageType;
+  ImageType::RegionType region;
+  ImageType::SizeType size;
+  ImageType::DirectionType dir;
+  dir.SetIdentity();
+
   ImageType::Pointer img = ImageType::New();
 
   json_object* dataarray;
@@ -103,68 +117,70 @@ int main( int argc, char ** argv )
         int arraylen = json_object_array_length(val);
         int i;
         json_object * jvalue;
-        double spacing[3];
+
         for (i=0; i< arraylen; i++){
             jvalue = json_object_array_get_idx(val, i);
             spacing[i] = json_object_get_double(jvalue);
         }
 
-        img->SetSpacing(spacing);
-
     }else if(string(key).compare("origin")==0){
         int arraylen = json_object_array_length(val);
         int i;
         json_object * jvalue;
-        double origin[3];
+
         for (i=0; i< arraylen; i++){
             jvalue = json_object_array_get_idx(val, i);
             origin[i] = json_object_get_double(jvalue);
         }
 
-        img->SetOrigin(origin);
+
     }else if(string(key).compare("size")==0){
         int arraylen = json_object_array_length(val);
         int i;
         json_object * jvalue;
-        ImageType::RegionType region;
-        ImageType::SizeType size;
+
         for (i=0; i< arraylen; i++){
             jvalue = json_object_array_get_idx(val, i);
             size[i] = json_object_get_int(jvalue);
         }
         region.SetSize(size);
-        img->SetRegions(region);
+
     }else if(string(key).compare("matrix") == 0){
         int arraylen = json_object_array_length(val);
         int i;
         json_object * jvalue;
-        ImageType::DirectionType dir;
-        dir.SetIdentity();
 
         for (i=0; i< arraylen; i++){
             jvalue = json_object_array_get_idx(val, i);
             dir[i%3][(int)i/3] = json_object_get_double(jvalue);
         }
-        img->SetDirection(dir);
+
     }else if(string(key).compare("data") == 0){
         dataarray = val;
     }
   }
+
+  //img->SetDirection(dir);
+  img->SetRegions(region);
   img->Allocate();
 
-  itk::OrientImageFilter<ImageType,ImageType>::Pointer orienter = itk::OrientImageFilter<ImageType,ImageType>::New();
+//  itk::OrientImageFilter<ImageType,ImageType>::Pointer orienter = itk::OrientImageFilter<ImageType,ImageType>::New();
 
+//  orienter->SetDesiredCoordinateOrientation(itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_LPI);
+//  orienter->SetUseImageDirection(true);
+//  orienter->SetInput(img);
+//  orienter->Update();
+//  img = orienter->GetOutput();
   itk::Matrix<double, 3, 3> ident;
   ident.SetIdentity();
   ident[0][0] = -1;
   ident[1][1] = -1;
 
-  orienter->SetDesiredCoordinateDirection(ident);
-  orienter->SetUseImageDirection(true);
+  origin[0] = origin[0]*-1;
+  origin[1] = origin[1]*-1;
 
-  orienter->SetInput(img);
-  orienter->Update();
-  img = orienter->GetOutput();
+  img->SetSpacing(spacing);
+  img->SetOrigin(origin);
   img->SetDirection(ident);
 
   itk::ImageRegionIterator<ImageType> it(img, img->GetLargestPossibleRegion());

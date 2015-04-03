@@ -86,10 +86,12 @@ int main( int argc, char ** argv )
   map<PixelType, int>  allImageLabels;
 
   while(!it.IsAtEnd()){
-      if(allImageLabels.find(it.Get()) == allImageLabels.end()){
-          allImageLabels[it.Get()] = 0;
+      if(it.Get() != 0){
+          if(allImageLabels.find(it.Get()) == allImageLabels.end()){
+              allImageLabels[it.Get()] = 0;
+          }
+          allImageLabels[it.Get()] = allImageLabels[it.Get()] + 1;
       }
-      allImageLabels[it.Get()] = allImageLabels[it.Get()] + 1;
       ++it;
   }
 
@@ -99,15 +101,13 @@ int main( int argc, char ** argv )
   ImageType::SpacingType spacing = image->GetSpacing();
   float spcvol = spacing[0]*spacing[1]*spacing[2];
   cout<<std::fixed;
-  cout<<"\"spacing\" : ["<<spacing[0]<<","<<spacing[1]<<","<<spacing[2]<<"],"<<endl;
+//  cout<<"\"spacing\" : ["<<spacing[0]<<","<<spacing[1]<<","<<spacing[2]<<"],"<<endl;
 
   for (map<PixelType, int>::iterator it=allImageLabels.begin(); it!=allImageLabels.end(); ++it){
 
-      cout << "\""<< it->first << "\" : {";
-      cout<<"\"voxels\" : "<<it->second<<","<<endl;
       float volume = it->second * spcvol;
-      cout<<"\"volume\" : "<<volume<<endl;
-      cout<<"}";
+      cout << "\""<< it->first << "\" : " <<volume<<endl;
+
       if(n < size -1){
           cout<<",";
       }
