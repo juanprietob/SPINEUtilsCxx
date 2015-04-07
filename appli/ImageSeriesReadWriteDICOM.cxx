@@ -189,19 +189,19 @@ int main( int argc, char ** argv )
   if(resample){
       itk::OrientImageFilter<ImageType,ImageType>::Pointer orienter = itk::OrientImageFilter<ImageType,ImageType>::New();
 
-      itk::Matrix<double, 3, 3> ident;
-      ident.SetIdentity();
-      ident[0][0] = -1;
-      ident[1][1] = -1;
+//      itk::Matrix<double, 3, 3> ident;
+//      ident.SetIdentity();
+//      ident[0][0] = -1;
+//      ident[1][1] = -1;
 
-      //orienter->SetDesiredCoordinateOrientation(itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAS);
-      orienter->SetDesiredCoordinateDirection(ident);
+      orienter->SetDesiredCoordinateOrientation(itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_LPI);
+//      orienter->SetDesiredCoordinateDirection(ident);
       orienter->SetUseImageDirection(true);
 
       orienter->SetInput(resimage);
       orienter->Update();
       resimage = orienter->GetOutput();
-      resimage->SetDirection(ident);
+//      resimage->SetDirection(ident);
   }
   // Software Guide : BeginCodeSnippet
 
