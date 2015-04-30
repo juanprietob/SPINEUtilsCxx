@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
-cmake_policy(SET CMP0053 OLD)
+IF( CMAKE_MAJOR_VERSION GREATER 3 )
+    cmake_policy(SET CMP0053 OLD)
+endif( CMAKE_MAJOR_VERSION  GREATER 3 )
 
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
