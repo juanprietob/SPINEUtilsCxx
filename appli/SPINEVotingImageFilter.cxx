@@ -23,7 +23,7 @@ int main( int argc, char ** argv )
   static const int dimension = 3;
   typedef itk::Image< PixelType, dimension > ImageType;
 
-  PixelType labelforundecided = 256;
+  PixelType labelforundecided = 0;
 
   typedef itk::ImageFileReader<ImageType> ImageReaderType;
 
