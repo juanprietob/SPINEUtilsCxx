@@ -24,6 +24,7 @@ void help(char* exec){
     cerr<<"-f <json filename>"<<endl;
     cerr<<"-json <string json object>"<<endl;
     cerr<<"-o <outputfilename>"<<endl;
+    cerr<<"-sep <add a separation string to use multiple images>"<<endl;
 }
 
 void json_parse(json_object * jobj) {
@@ -104,11 +105,12 @@ int main( int argc, char ** argv )
        tempFile.close();
        isTempFile = true;
 
-       str = str.substr(pos + sep.length());
+       str = str.substr(pos + sep.length());//img data
    }
 
   json_object *new_obj;
   new_obj = json_tokener_parse(str.c_str());
+  str = "";
 
   typedef unsigned short PixelType;
   static const int dimension = 3;
