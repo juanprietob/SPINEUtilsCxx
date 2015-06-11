@@ -43,6 +43,10 @@
 #include "itkNumericSeriesFileNames.h"
 #include "itkGE5ImageIO.h"
 #include "itkGE4ImageIO.h"
+#include "itkIPLCommonImageIO.h"
+#include "itkRawImageIO.h"
+
+#include "itkImageRegionIterator.h"
 
 #include "string"
 
@@ -51,12 +55,71 @@
 using namespace std;
 
 void help(char* exec){
-    cerr<<"Usage: "<<exec<<" -f <First file of Genesis stack> ex: "<<exec<<" -f <patient path>/T2/I.001"<<endl;
-    cerr<<"Output: The output filename is calculated from the directory. ex: <patient path>/T2.nii.gz"<<endl;
+    cerr<<"Usage: "<<exec<<" -f <First file of Genesis stack> ex: "<<exec<<" -f I.001"<<endl;
     cerr<<"Options: "<<endl;
-    cerr<<"-it <input format> ex -it dicom"<<endl;
+    cerr<<"-ie <Input filename. Example image. The output image will have the same characteristics, spacing, origin etc.>"<<endl;
     cerr<<"-o <Output filename>"<<endl;
-    cerr<<"\n\t SPINE related SPINEUtils: -r <root dir>, used for DB insertion in table ModuleData. The last directory of <root dir> is used as the name identifier."<<endl;
+}
+
+template<typename ImageType>
+typename ImageType::Pointer getImage2D(string filename){
+
+    typedef typename ImageType::Pointer ImageTypePointer;
+    typedef itk::ImageSeriesReader< ImageType >  ReaderType;
+    typename ReaderType::Pointer reader = ReaderType::New();
+
+    reader->SetImageIO( itk::GE5ImageIO::New() );
+    reader->SetFileName(filename);
+    try{
+        reader->Update();
+        ImageTypePointer img = reader->GetOutput();
+        return img;
+    }catch(itk::ExceptionObject &e){
+        cerr<<e<<endl;
+        return NULL;
+    }
+}
+
+template<typename ImageType>
+vector<typename ImageType::Pointer> getAll2DImages(vector<string> filenames){
+
+    typedef typename ImageType::Pointer ImageTypePointer;
+    vector<ImageTypePointer> allimages;
+
+    for(int i = 0; i < filenames.size(); i++){
+
+        ImageTypePointer p = getImage2D<ImageType>(filenames[i]);
+        if(p){
+            allimages.push_back(p);
+        }
+    }
+    return allimages;
+}
+
+template<typename ImageType>
+vector<string> getAll2DFileNames(vector<string> filenames){
+
+    vector<string> filenamesActive;
+    typedef itk::ImageSeriesReader< ImageType >  ReaderType;
+    for(int i = 0; i < filenames.size(); i++){
+        typename ReaderType::Pointer reader = ReaderType::New();
+
+        reader->SetImageIO( itk::GE5ImageIO::New() );
+        reader->SetFileName(filenames[i]);
+        try{
+            reader->Update();
+            filenamesActive.push_back(filenames[i]);
+        }catch(itk::ExceptionObject &e){
+            cerr<<e<<endl;
+        }
+    }
+    return filenamesActive;
+}
+
+std::ifstream::pos_type filesize(const char* filename)
+{
+    std::ifstream in(filename, std::ifstream::ate | std::ifstream::binary);
+    return in.tellg();
 }
 
 int main( int argc, char ** argv )
@@ -71,24 +134,10 @@ int main( int argc, char ** argv )
   // Software Guide : EndLatex
 
   // Software Guide : BeginCodeSnippet
-  typedef short                       PixelType;
+  typedef unsigned short                       PixelType;
   const unsigned int Dimension = 3;
 
   typedef itk::Image< PixelType, Dimension >  ImageType;
-  // Software Guide : EndCodeSnippet
-
-
-  // Software Guide : BeginLatex
-  //
-  // The image type is used as a template parameter to instantiate
-  // the reader and writer.
-  //
-  // \index{itk::ImageSeriesReader!Instantiation}
-  // \index{itk::ImageFileWriter!Instantiation}
-  //
-  // Software Guide : EndLatex
-
-  // Software Guide : BeginCodeSnippet
   typedef itk::ImageSeriesReader< ImageType >  ReaderType;
   typedef itk::ImageFileWriter<   ImageType >  WriterType;
 
@@ -98,163 +147,182 @@ int main( int argc, char ** argv )
 
 
   string firstSliceName = "";
-  string rootDir = "";
-  string outputFileName = "";
-
+  string outputFileName = "out.nii.gz";
+  string inputFileExample = "";
 
   for(int i = 1; i < argc - 1; i++){
       
       if(string(argv[i]).compare("-f") == 0){
           firstSliceName = string(argv[i+1]);
-      }else if(string(argv[i]).compare("-d") == 0){
-          rootDir = string(argv[i+1]);
       }else if(string(argv[i]).compare("-o") == 0){
           outputFileName = string(argv[i+1]);
+      }else if(string(argv[i]).compare("-ie") == 0){
+          inputFileExample = string(argv[i+1]);
       }
   }
-
-  cout<<"firstSliceName= " + firstSliceName<<endl;
 
   if(firstSliceName == ""){
       help(argv[0]);
       return 0;
   }
 
-  if(rootDir != ""){
-      rootDir = rootDir.substr(0, rootDir.find_last_of("/"));
-      rootDir = rootDir.substr(rootDir.find_last_of("/") + 1);
+  ImageType::Pointer inputExample = 0;
+  if(inputFileExample.compare("") != 0){
+      typedef itk::ImageFileReader<ImageType> ImageReaderType;
+      ImageReaderType::Pointer read = ImageReaderType::New();
+      read->SetFileName(inputFileExample);
+      read->Update();
+      inputExample = read->GetOutput();
   }
 
-  string imagetype = "";
-  if(outputFileName == ""){
-      outputFileName = firstSliceName.substr(0, firstSliceName.find_last_of("/"));
-
-      imagetype = outputFileName.substr(outputFileName.find_last_of("/") + 1);
-      string outImageName = imagetype + ".nii.gz";
-
-      outputFileName = outputFileName.substr(0, outputFileName.find_last_of("/") + 1) + outImageName;
-  }
-
-
-  // Software Guide : BeginLatex
-  //
-  // Then, we declare the filenames generator type and create one instance of it.
-  //
-  // Software Guide : EndLatex
-
-  // Software Guide : BeginCodeSnippet
   typedef itk::NumericSeriesFileNames    NameGeneratorType;
 
   NameGeneratorType::Pointer nameGenerator = NameGeneratorType::New();
-  // Software Guide : EndCodeSnippet
-
-
-
-  // Software Guide : BeginLatex
-  //
-  // The filenames generator requires us to provide a pattern of text for the
-  // filenames, and numbers for the initial value, last value and increment to be
-  // used for generating the names of the files.
-  //
-  // Software Guide : EndLatex
-
-  // Software Guide : BeginCodeSnippet
   nameGenerator->SetSeriesFormat( firstSliceName.substr(0, firstSliceName.find_last_of(".")) + ".%03d" );
-
   nameGenerator->SetStartIndex( 1 );
   nameGenerator->SetEndIndex( 1 );
   nameGenerator->SetIncrementIndex( 1 );
-  // Software Guide : EndCodeSnippet
-
-  //  Software Guide : BeginLatex
-  //
-  //  The ImageIO object that actually performs the read process is now connected
-  //  to the ImageSeriesReader. This is the safest way of making sure that we use
-  //  an ImageIO object that is appropriate for the type of files that we want to
-  //  read.
-  //
-  //  Software Guide : EndLatex
-
-  // Software Guide : BeginCodeSnippet
-  reader->SetFileNames( nameGenerator->GetFileNames()  );
-
-
-  // Software Guide : EndCodeSnippet
-
-  //  Software Guide : BeginLatex
-  //
-  //  The filenames of the input files must be provided to the reader. While the
-  //  writer is instructed to write the same volume dataset in a single file.
-  //
-  //
-  //  Software Guide : EndLatex
-
-  // Software Guide : BeginCodeSnippet
+  vector<string> filenames = nameGenerator->GetFileNames();
+  reader->SetFileNames( filenames );
 
   reader->SetImageIO( itk::GE5ImageIO::New() );
 
   ImageType::Pointer resimage = 0;
   try{
+    reader->Update();
     resimage = reader->GetOutput();
   }catch( itk::ExceptionObject & err ){
-      cout << "ERROR: Trying reader GE4"<<endl;
-
-      reader->SetImageIO(itk::GE4ImageIO::New());
+      cerr<< err <<endl;
+      cerr<<"Trying slice by slice..."<<endl;
       try{
-          resimage = reader->GetOutput();
+          NameGeneratorType::Pointer nameGenerator2D = NameGeneratorType::New();
+          nameGenerator2D->SetSeriesFormat( firstSliceName.substr(0, firstSliceName.find_last_of(".")) + ".%03d" );
+          nameGenerator2D->SetStartIndex( 1 );
+          nameGenerator2D->SetEndIndex( 56 );
+          nameGenerator2D->SetIncrementIndex( 1 );
+          vector<string> filenames = nameGenerator2D->GetFileNames();
+
+          typedef itk::Image< PixelType, 2 >  ImageType2D;
+          filenames = getAll2DFileNames<ImageType2D>(filenames);
+
+          if(filenames.size() == 0){
+              throw itk::ExceptionObject("ImageSeriesReadWrite", 0, "No slices could be read.");
+          }else{
+              cout<<"Slices read: "<<filenames.size()<<endl;
+
+              ImageType2D::Pointer img2d = getImage2D<ImageType2D>(firstSliceName);
+
+              ImageType::SizeType size;
+              ImageType2D::SizeType img2dsize = img2d->GetLargestPossibleRegion().GetSize();
+              size[0] = img2dsize[0];
+              size[1] = img2dsize[0];
+              size[2] = filenames.size();
+              double spc[3];
+              spc[0] = img2d->GetSpacing()[0];
+              spc[1] = img2d->GetSpacing()[1];
+              spc[2] = 3;
+
+              typedef itk::RawImageIO<PixelType, 2> RawIOType;
+              RawIOType::Pointer rawio = RawIOType::New();
+              rawio->SetDimensions( 0, size[0] );
+              rawio->SetDimensions( 1, size[1] );
+              rawio->SetSpacing( 0, spc[0] );
+              rawio->SetSpacing( 1, spc[1] );
+
+              int s = filesize(firstSliceName.c_str());
+              s -= size[0]*size[0]*sizeof(PixelType);
+              if(s > 0){
+                  rawio->SetHeaderSize(s);
+              }else{
+                  throw itk::ExceptionObject("ImageSeriesReadWrite", 0, "There is no header in this file");
+              }
+
+              reader->SetFileNames(filenames);
+              reader->SetImageIO(rawio);
+              reader->Update();
+              resimage = reader->GetOutput();
+              resimage->SetSpacing(spc);
+          }
+
+
       }catch(itk::ExceptionObject & err ){
-          cerr << "ERROR: " <<firstSliceName<<endl;
-          cerr<< err << endl;
-          return EXIT_FAILURE;
+          cerr<< err <<endl;
+          cerr << "Trying reader GE4..."<<endl;
+          try{
+              reader->SetImageIO(itk::GE4ImageIO::New());
+              reader->Update();
+              resimage = reader->GetOutput();
+          }catch(itk::ExceptionObject & err){
+              cerr<< err <<endl;
+              cerr<<"Trying raw image reader..."<<endl;
+
+              double spc[3];
+              spc[0] = 0.9375;
+              spc[1] = 0.9375;
+              spc[2] = 3;
+              double origin[3];
+              origin[0] = 0;
+              origin[1] = 0;
+              origin[2] = 0;
+              int dimensions[3];
+              dimensions[0] = 256;
+              dimensions[1] = 256;
+              dimensions[2] = 54;
+
+              ImageType::DirectionType dir;
+              dir.SetIdentity();
+
+              if(inputExample){
+                  inputExample->GetOrigin();
+                  ImageType::SpacingType tempspc = inputExample->GetSpacing();
+                  spc[0] = tempspc[0];
+                  spc[1] = tempspc[1];
+                  spc[2] = tempspc[2];
+                  ImageType::RegionType::SizeType size = inputExample->GetLargestPossibleRegion().GetSize();
+                  dimensions[0] = size[0];
+                  dimensions[1] = size[1];
+                  dimensions[2] = size[2];
+                  dir = inputExample->GetDirection();
+              }
+
+              nameGenerator->SetEndIndex( dimensions[2] );
+
+              vector<string> filenames = nameGenerator->GetFileNames();
+
+              reader->SetFileNames( filenames );
+
+              typedef itk::RawImageIO<PixelType, 2> RawIOType;
+              RawIOType::Pointer rawio = RawIOType::New();
+              rawio->SetDimensions( 0, dimensions[0] );
+              rawio->SetDimensions( 1, dimensions[1] );
+              rawio->SetSpacing( 0, spc[0] );
+              rawio->SetSpacing( 1, spc[1] );
+              rawio->SetHeaderSize(0);
+              reader->SetImageIO(rawio);
+
+              try{
+                  reader->Update();
+                  resimage = reader->GetOutput();
+                  resimage->SetSpacing(spc);
+                  resimage->SetDirection(dir);
+              }catch(itk::ExceptionObject & err ){
+                  cerr << "ERROR: Complete failure to read this image. "<<endl;
+                  cerr<<err<<endl;
+                  return EXIT_FAILURE;
+              }
+          }
+
       }
   }
 
-  cout<<endl<<"Writing to: "<<outputFileName<<endl;
+  cout<<endl<<"{\"outputFilename\" : \""<<outputFileName<<"\"}"<<endl;
   writer->SetFileName( outputFileName.c_str() );
-  // Software Guide : EndCodeSnippet
-
-  // Software Guide : BeginLatex
-  //
-  // We connect the output of the reader to the input of the writer.
-  //
-  // Software Guide : EndLatex
-  itk::OrientImageFilter<ImageType,ImageType>::Pointer orienter = itk::OrientImageFilter<ImageType,ImageType>::New();
-
-  itk::Matrix<double, 3, 3> ident;
-  ident.SetIdentity();
-  ident[0][0] = -1;
-  ident[1][1] = -1;
-
-  //orienter->SetDesiredCoordinateOrientation(itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAS);
-  orienter->SetDesiredCoordinateDirection(ident);
-  orienter->SetUseImageDirection(true);
-  orienter->SetInput(resimage);
-  orienter->Update();
-  resimage = orienter->GetOutput();
-
-  resimage->SetDirection(ident);
-  // Software Guide : BeginCodeSnippet
   writer->SetInput( resimage );
-  // Software Guide : EndCodeSnippet
-
-
-
-  //  Software Guide : BeginLatex
-  //
-  //  Finally, execution of the pipeline can be triggered by invoking the
-  //  Update() method in the writer. This call must be placed in a try/catch
-  //  block since exceptions be potentially be thrown in the process of reading
-  //  or writing the images.
-  //
-  //  Software Guide : EndLatex
-
-  // Software Guide : BeginCodeSnippet
   try
     {
     writer->Update();
   }catch( itk::ExceptionObject & err )
     {
-    cerr << "ERROR: " <<rootDir<<"/"<<imagetype<<endl;
     cerr<< err << endl;
     return EXIT_FAILURE;
     }

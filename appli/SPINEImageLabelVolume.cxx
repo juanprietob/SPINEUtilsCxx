@@ -13,6 +13,7 @@ using namespace std;
 
 void help(char* exec){
     cerr<<"Calculates the number of voxels per label in a labeled volume. The output is a JSON doc with the volume of each structure."<<endl;
+    cerr<<"The output is: { <labelNumber> : <volumeValue> }, e.x. { \"0\" : 40 }"<<endl;
     cerr<<"How to use: "<<string(exec)<<" -f <filename>"<<endl;
     cerr<<"Using the standard input:"<<endl;
     cerr<<"cat <imageFilename> | "<<string(exec)<<endl;

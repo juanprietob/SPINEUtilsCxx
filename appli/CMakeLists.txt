@@ -8,8 +8,12 @@ FOREACH( NAME  ${NAMES})
 ENDFOREACH(NAME)
 
 
-add_executable(ImageSeriesReadWrite   ImageSeriesReadWrite.cxx)
-target_link_libraries(ImageSeriesReadWrite ${ITK_LIBRARIES})
+SET(EXE_NAME ImageSeriesReadWrite)
+add_executable(${EXE_NAME}   ${EXE_NAME}.cxx)
+target_link_libraries(${EXE_NAME} ${ITK_LIBRARIES})
+install(TARGETS ${EXE_NAME}
+        RUNTIME
+        DESTINATION bin)
 
 add_executable(SimpleRegionGrowingSegmentation   SimpleRegionGrowingSegmentation.cxx)
 target_link_libraries(SimpleRegionGrowingSegmentation ${ITK_LIBRARIES} ${XERCES_LIBRARIES})
