@@ -14,15 +14,14 @@ void help(char* exec){
 int main( int argc, char ** argv )
 {
 
-  if(argc < 4){
+  if(argc < 3){
       help(argv[0]);
       return 0;
   }
 
-  int rate = (atoi)(argv[1]);
-  int label = (atoi)(argv[2]);
+  int label = (atoi)(argv[1]);
   int labelForUndecided = 0;
-  int nbImages = argc - 3;
+  int nbImages = argc - 2;
 
   typedef unsigned short PixelType;
   static const int dimension = 3;
@@ -32,7 +31,7 @@ int main( int argc, char ** argv )
 
   //Counter initialization
   ImageReaderType::Pointer reader = ImageReaderType::New();
-  reader->SetFileName( argv[3] );
+  reader->SetFileName( argv[2] );
   reader->Update();
 
   ImageType::Pointer image = reader->GetOutput();
@@ -42,8 +41,7 @@ int main( int argc, char ** argv )
   counter->SetDirection(image->GetDirection());
   counter->SetRegions(region);
   counter->Allocate();
-
-  itk::ImageRegionIterator<ImageType> counterIterator(counter, counter->GetRequestedRegion());
+  itk::ImageRegionIterator<ImageType> counterIterator(counter, counter->GetRequestedRegion()); 
   counterIterator.GoToBegin();
   while(!counterIterator.IsAtEnd())
   {
@@ -52,13 +50,13 @@ int main( int argc, char ** argv )
   }
 
   //Process images
-  for(int i = 3; i < argc; i++){
-
+  for(int i = 2; i < argc; i++){
     ImageReaderType::Pointer reader = ImageReaderType::New();
     reader->SetFileName( argv[i] );
     reader->Update();
 
     ImageType::Pointer image = reader->GetOutput();
+
     itk::ImageRegionIterator<ImageType> imageIterator(image, image->GetRequestedRegion());
 
     imageIterator.GoToBegin();
@@ -77,6 +75,14 @@ int main( int argc, char ** argv )
       ++counterIterator;
     }
 
+  }
+
+  counterIterator.GoToBegin();
+  while(!counterIterator.IsAtEnd())
+  {
+    int val = ( counterIterator.Get() * 10000 ) / nbImages ;
+    counterIterator.Set(val);
+    ++counterIterator;
   }
   
   string filename = "";
@@ -97,4 +103,5 @@ int main( int argc, char ** argv )
   cout<<"}"<<endl;
 
   return EXIT_SUCCESS;
+
 }
