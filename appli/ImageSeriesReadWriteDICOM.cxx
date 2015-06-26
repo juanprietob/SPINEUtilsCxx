@@ -91,6 +91,7 @@ int main( int argc, char ** argv )
   string outputFileName = "";
   string filename = "";
   bool resample = true;
+  int echo = -1;
 
 
   for(int i = 1; i < argc - 1; i++){
@@ -103,6 +104,8 @@ int main( int argc, char ** argv )
           filename = string(argv[i+1]);
       }else if(param == "-resample"){
           resample = atoi(argv[i+1]);
+      }else if(param == "-echo"){
+          echo = atoi(argv[i+1]);
       }
   }
 
@@ -133,25 +136,31 @@ int main( int argc, char ** argv )
 
         ImageIOType::Pointer gdcmIO = ImageIOType::New();
         InputNamesGeneratorType::Pointer inputNames = InputNamesGeneratorType::New();
-        inputNames->SetInputDirectory( dirName.c_str() );
+        inputNames->SetUseSeriesDetails(true);
+        if(echo > -1){
+            inputNames->AddSeriesRestriction("0018|0086");//Echo number
+        }
+        inputNames->SetDirectory(dirName);
 
-        const ReaderType::FileNamesContainer &filenames = inputNames->GetInputFileNames();
+        ReaderType::FileNamesContainer filenames;
+        if(echo > -1){
+            vector<string> series = inputNames->GetSeriesUIDs();
+            filenames = inputNames->GetFileNames(series[echo]);
+        }else{
+            filenames = inputNames->GetInputFileNames();
+        }
 
         ReaderType::Pointer reader = ReaderType::New();
 
         reader->SetImageIO( gdcmIO );
         reader->SetFileNames( filenames );
-        try
-          {
-          reader->Update();
-          }
-        catch (itk::ExceptionObject &excp)
-          {
+        try{
+            reader->Update();
+        }catch (itk::ExceptionObject &excp){
           std::cerr << "Exception thrown while reading the series" << std::endl;
           std::cerr << excp << std::endl;
           return EXIT_FAILURE;
-          }
-
+        }
 
       try{
         ReaderImageType::Pointer image = reader->GetOutput();
@@ -188,20 +197,12 @@ int main( int argc, char ** argv )
   // Software Guide : EndLatex
   if(resample){
       itk::OrientImageFilter<ImageType,ImageType>::Pointer orienter = itk::OrientImageFilter<ImageType,ImageType>::New();
-
-//      itk::Matrix<double, 3, 3> ident;
-//      ident.SetIdentity();
-//      ident[0][0] = -1;
-//      ident[1][1] = -1;
-
       orienter->SetDesiredCoordinateOrientation(itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_LPI);
-//      orienter->SetDesiredCoordinateDirection(ident);
       orienter->SetUseImageDirection(true);
 
       orienter->SetInput(resimage);
       orienter->Update();
       resimage = orienter->GetOutput();
-//      resimage->SetDirection(ident);
   }
   // Software Guide : BeginCodeSnippet
 

@@ -13,6 +13,7 @@ void help(char* exec){
     cerr<<"Extract a slice from a volume. The image can be set through std input or with filename"<<endl;
     cerr<<"ex. cat <imageFilename> | "<<string(exec)<<" -x <num>"<<endl;
     cerr<<"options: "<<endl;
+    cerr<<"-f <filename>"<<endl;
     cerr<<"-x <int>"<<endl;
     cerr<<"-y <int>"<<endl;
     cerr<<"-z <int>"<<endl;
