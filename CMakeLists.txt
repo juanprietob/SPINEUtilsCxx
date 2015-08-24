@@ -1,57 +1,56 @@
-cmake_minimum_required(VERSION 2.8)
-IF( CMAKE_MAJOR_VERSION GREATER 3 )
-    cmake_policy(SET CMP0053 OLD)
-endif( CMAKE_MAJOR_VERSION  GREATER 3 )
-
-set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
+cmake_minimum_required(VERSION 2.8.3)
+cmake_policy(VERSION 2.8.3)
 
 project(SPINEUtilsCXX)
 
-FIND_PACKAGE(VTK)
-IF(${VTK_FOUND})
-	include(${VTK_USE_FILE})
-ENDIF(${VTK_FOUND})
+set(LOCAL_PROJECT_NAME SPINEUtilsCXX)
 
-include(cmake/FindJSON.cmake)
-
-message(${JSON_INCLUDE_DIR})
-
-find_package(ITK REQUIRED)
-include(${ITK_USE_FILE})
-
-#find_package(GDCM REQUIRED)
-#include(${GDCM_USE_FILE})
-
-
-include_directories(/usr/local/include/)
-set(XERCES_LIBRARIES xerces-c-3.1)
+#-----------------------------------------------------------------------------
+# Update CMake module path
+# We need to update the CMake Module path in this main CMakeLists.txt file
+# so that we can include SlicerExtensionsConfigureMacros which is in the current
+# ${Project}/CMake folder
+#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
+# Update CMake module path
+#------------------------------------------------------------------------------
+set(CMAKE_MODULE_PATH
+  ${CMAKE_SOURCE_DIR}/cmake
+  ${CMAKE_SOURCE_DIR}/SuperBuild
+  ${CMAKE_MODULE_PATH}
+  )
 
 
-INCLUDE(cmake/UserMacros.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/Common.cmake)
 
-CREA_CPDIR(${PROJECT_SOURCE_DIR}/data ${PROJECT_BINARY_DIR}/data)
+## NOTE THERE SHOULD BE NO PROJECT STATEMENT HERE!
+## This file acts as a simple switch to initiate
+## two completely independant CMake build environments.
 
-message(${PROJECT_SOURCE_DIR}/lib/SPINEToolsIO)
+#-----------------------------------------------------------------------------
+# Superbuild Option - Enabled by default
+#                   Phase I:  ${LOCAL_PROJECT_NAME}_SUPERBUILD is set to ON, and the
+#                             supporting packages defined in "SuperBuild.cmake"
+#                             are built.  The last package in "SuperBuild.cmake"
+#                             to be built is a recursive call to this
+#                             file with ${LOCAL_PROJECT_NAME}_SUPERBUILD explicitly
+#                             set to "OFF" to initiate Phase II
+#
+#                   Phase II: Build the ${LOCAL_PROJECT_NAME}, referencing the support
+#                             packages built in Phase I.
+#-----------------------------------------------------------------------------
 
-INCLUDE_DIRECTORIES(
-	${PROJECT_SOURCE_DIR}/lib/SPINEToolsIO
-        ${PROJECT_SOURCE_DIR}/lib/SPINEToolsInterpolation
-        ${PROJECT_SOURCE_DIR}/lib/Wfbplot
-        ${PROJECT_SOURCE_DIR}/lib/SPINEFiltersITK
-        ${PROJECT_SOURCE_DIR}/lib/SPINEFiltersVTK
-)
+option(${LOCAL_PROJECT_NAME}_SUPERBUILD "Build ${LOCAL_PROJECT_NAME} and the projects it depends on via SuperBuild.cmake." ON)
 
-LINK_DIRECTORIES(
-        ${PROJECT_BINARY_DIR}/lib/
-)
+#-----------------------------------------------------------------------------
+# Superbuild script
+#-----------------------------------------------------------------------------
+if(${LOCAL_PROJECT_NAME}_SUPERBUILD)
+  include("${CMAKE_CURRENT_SOURCE_DIR}/SuperBuild.cmake")
+  return()
+else()
+  include("${CMAKE_CURRENT_SOURCE_DIR}/${LOCAL_PROJECT_NAME}.cmake")
+  return()
+endif()
 
-SUBDIRS(lib)
-SUBDIRS(appli)
-SUBDIRS(install)
-
-OPTION(BUILD_ANONYMIZE "Build test ?" TRUE)
-OPTION(BUILD_TEST "Build test ?" OFF)
-IF(BUILD_TEST)
-	SUBDIRS(test)
-ENDIF(BUILD_TEST)
-
+message(FATAL_ERROR "You should never reach this point !")
