@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 2.8.3)
 cmake_policy(VERSION 2.8.3)
 
-project(SPINEUtilsCXX)
+project(SPINEUtilsCxx)
 
-set(LOCAL_PROJECT_NAME SPINEUtilsCXX)
+set(LOCAL_PROJECT_NAME SPINEUtilsCxx)
 
 #-----------------------------------------------------------------------------
 # Update CMake module path
