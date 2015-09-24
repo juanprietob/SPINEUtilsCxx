@@ -86,6 +86,11 @@ if(NOT ( DEFINED "USE_SYSTEM_${extProjName}" AND "${USE_SYSTEM_${extProjName}}" 
   set(${proj}_GIT_TAG "a8526829ed22363f4039b3d273101c3542bc2a50")
   set(${proj}_REPOSITORY ${git_protocol}://github.com/juanprietob/GDCM.git)
 
+
+ SET(GDCM_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_BINARY_DIR}/${proj}-install/include" CACHE TYPE PATH)
+ SET(GDCM_LINK_DIRECTORIES "${CMAKE_CURRENT_BINARY_DIR}/${proj}-install/lib" CACHE TYPE PATH)
+
+
   ExternalProject_Add(${proj}
     GIT_REPOSITORY ${${proj}_REPOSITORY}
     GIT_TAG ${${proj}_GIT_TAG}
@@ -108,7 +113,13 @@ if(NOT ( DEFINED "USE_SYSTEM_${extProjName}" AND "${USE_SYSTEM_${extProjName}}" 
 
 else()
   if(${USE_SYSTEM_${extProjName}})
-    find_package(${extProjName})
+
+    find_path(GDCM_INCLUDE_DIRECTORIES gdcm-2.5/gdcmReader.h 
+      HINTS 
+      /usr/local/include/
+    )
+    #SET(GDCM_INCLUDE_DIRECTORIES CACHE TYPE PATH)
+    #find_package(${extProjName})
     message("USING the system ${extProjName}, set ${extProjName}_DIR=${${extProjName}_DIR}")
   endif()
   # The project is provided using ${extProjName}_DIR, nevertheless since other
