@@ -21,6 +21,7 @@ void help(char* exec){
     cerr<<"-i <imageFilename>"<<endl;
     cerr<<"-l <labelValue>"<<endl;
     cerr<<"-o <outputDirectory>"<<endl;
+    cerr<<"-of <outputFileCompound>"<<endl;
 }
 
 int main(int argv, char **argc)
