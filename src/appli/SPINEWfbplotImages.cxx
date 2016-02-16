@@ -186,7 +186,7 @@ int main(int argv, char **argc)
     outimgcompound->SetSpacing(imageSpacing);
     outimgcompound->SetOrigin(imageOrigin);
     outimgcompound->SetDirection(imageDirection);
-    outimgcompound->Allocate(true);
+    outimgcompound->Allocate();
 
 
     for(unsigned i=0; i < bplotdata.size(); i++){
@@ -195,7 +195,7 @@ int main(int argv, char **argc)
         outimg->SetSpacing(imageSpacing);
         outimg->SetOrigin(imageOrigin);
         outimg->SetDirection(imageDirection);
-        outimg->Allocate(true);
+        outimg->Allocate();
 
         OutputImageRegionIteratorType outit(outimg, region);
         unsigned j = 0;
