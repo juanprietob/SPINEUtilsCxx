@@ -20,12 +20,15 @@ int main( int argc, char ** argv )
 {
 
   string filename = "";
+  string extension = ".nii.gz";
 
   //string imagestring = "";
   for(int i = 1; i < argc; i++){
       string param = string(argv[i]);
       if(param.compare("-f") == 0){
           filename = string(argv[i+1]);
+      }else if(param.compare("-ext") == 0){
+          extension = string(argv[i+1]);
       }else if(param.compare("-h") == 0 || param.compare("-help") == 0){
           help(argv[0]);
           return 0;
@@ -47,7 +50,7 @@ int main( int argc, char ** argv )
       char buffer[] = "/tmp/SPINEXXXXXXX";
       mktemp(buffer);
       filename = string(buffer);
-      filename.append(".nii.gz");
+      filename.append(extension);
 
       ofstream tempFile;
       tempFile.open (filename.c_str());
@@ -82,12 +85,13 @@ int main( int argc, char ** argv )
       ++it;
   }
 
-  if(!isTempFile){
-      char buffer[] = "/tmp/SPINEXXXXXXX";
-      mktemp(buffer);
-      filename = string(buffer);
-      filename.append(".nii.gz");
+  if(isTempFile){
+      remove(filename.c_str());
   }
+  char buffer[] = "/tmp/SPINEXXXXXXX";
+  mktemp(buffer);
+  filename = string(buffer);
+  filename.append(".nii.gz");
 
   typedef itk::ImageFileWriter<ImageType> WriterType;
   WriterType::Pointer writer = WriterType::New();

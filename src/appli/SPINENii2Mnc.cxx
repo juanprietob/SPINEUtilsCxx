@@ -2,7 +2,7 @@
 #include "itkImage.h"
 #include "itkImageFileWriter.h"
 #include "itkImageFileReader.h"
-
+#include "itkImageRegionIteratorWithIndex.h"
 
 using namespace std;
 
@@ -45,10 +45,32 @@ int main( int argc, char ** argv )
   reader->SetFileName( filename.c_str() );
   reader->Update();
 
+  typedef itk::ImageRegionIterator< ImageType > ImageRegionIteratorType;
+  typedef ImageType::PointType PointType;
+
   ImageType::Pointer image = 0;
 
   try{
         image = reader->GetOutput();
+        ImageRegionIteratorType it(image, image->GetLargestPossibleRegion());
+        it.Begin();
+        PointType point = image->GetOrigin();
+        while(!it.IsAtEnd()){
+            PointType p;
+            image->TransformIndexToPhysicalPoint(it.GetIndex(), p);
+            cout<<p<<endl;
+            point[0] = min(point[0], p[0]);
+            point[1] = min(point[1], p[1]);
+            point[2] = min(point[2], p[2]);
+
+            ++it;
+        }
+        cout<<"Min:"<<point;
+        cout<<endl;
+        ImageType::IndexType index;
+        image->TransformPhysicalPointToIndex(point, index);
+        cout<<"Index: "<<index;
+        cout<<endl;
   }catch (itk::ExceptionObject &excp)
   {
   std::cerr << "Exception thrown while reading the image. " << filename <<std::endl;
