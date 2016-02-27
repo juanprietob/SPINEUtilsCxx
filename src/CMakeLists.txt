@@ -15,7 +15,7 @@ ENDIF(${VTK_FOUND})
 INCLUDE_DIRECTORIES(${GDCM_INCLUDE_DIRECTORIES})
 
 include_directories(/usr/local/include/)
-set(XERCES_LIBRARIES xerces-c-3.1)
+set(XERCES_LIBRARIES xerces-c)
 
 
 INCLUDE(cmake/UserMacros.cmake)

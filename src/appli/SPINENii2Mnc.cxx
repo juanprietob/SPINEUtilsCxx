@@ -53,7 +53,7 @@ int main( int argc, char ** argv )
   try{
         image = reader->GetOutput();
         ImageRegionIteratorType it(image, image->GetLargestPossibleRegion());
-        it.Begin();
+        it.GoToBegin();
         PointType point = image->GetOrigin();
         while(!it.IsAtEnd()){
             PointType p;

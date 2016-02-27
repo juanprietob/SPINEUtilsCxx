@@ -100,7 +100,12 @@ add_executable(${EXE_NAME}   ${EXE_NAME}.cxx)
 target_link_libraries(${EXE_NAME} ${ITK_LIBRARIES} ${JSON_LIBRARIES})
 install(TARGETS ${EXE_NAME}
         RUNTIME
-        DESTINATION bin)        
+        DESTINATION bin)      
+
+SET(EXE_NAME test)
+add_executable(${EXE_NAME}   ${EXE_NAME}.cxx)
+target_link_libraries(${EXE_NAME} ${ITK_LIBRARIES})
+
 
 IF(${VTK_FOUND})
 
