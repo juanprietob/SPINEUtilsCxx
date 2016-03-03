@@ -41,6 +41,7 @@ int main( int argc, char ** argv )
   ImageType::Pointer counter = ImageType::New();
   counter->SetDirection(image->GetDirection());
   counter->SetRegions(region);
+  counter->SetOrigin(image->GetOrigin());
   counter->Allocate();
   //counter->FillBuffer(0);
   itk::ImageRegionIterator<ImageType> counterIterator(counter, counter->GetRequestedRegion()); // TODO: Change for image->GetRequestedRegion() after http://www.itk.org/Doxygen/html/classitk_1_1ImageRegionIterator.html
@@ -54,6 +55,7 @@ int main( int argc, char ** argv )
   //Create output image
   ImageType::Pointer output = ImageType::New();
   output->SetDirection(image->GetDirection());
+  output->SetOrigin(image->GetOrigin());
   output->SetRegions(region);
   output->Allocate();
   //output->FillBuffer(0);
