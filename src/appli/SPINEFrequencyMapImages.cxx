@@ -39,6 +39,7 @@ int main( int argc, char ** argv )
 
   ImageType::Pointer counter = ImageType::New();
   counter->SetDirection(image->GetDirection());
+  counter->SetOrigin(image->GetOrigin());
   counter->SetRegions(region);
   counter->Allocate();
   itk::ImageRegionIterator<ImageType> counterIterator(counter, counter->GetRequestedRegion()); 
