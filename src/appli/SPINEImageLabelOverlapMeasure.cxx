@@ -168,20 +168,28 @@ int main( int argc, char ** argv )
   	if(it->first != 0) {
       cout << "\""<< it->first << "\" : {";
       float diceCoefficient = filter->GetDiceCoefficient(it->first);
+      diceCoefficient = !isnan(diceCoefficient)? diceCoefficient: 0;
       cout<<"\"dice_coefficient\" : "<<diceCoefficient<<","<<endl;
       float jaccardCoefficient = filter->GetJaccardCoefficient(it->first);
+      jaccardCoefficient = !isnan(jaccardCoefficient)? jaccardCoefficient: 0;
       cout<<"\"jaccard_coefficient\" : "<<jaccardCoefficient<<","<<endl;
       float false_negative_error = filter->GetFalseNegativeError(it->first);
+      false_negative_error = !isnan(false_negative_error)? false_negative_error: 0;
       cout<<"\"false_negative_error\" : "<<false_negative_error<<","<<endl;
       float false_positive_error = filter->GetFalsePositiveError(it->first);
+      false_positive_error = !isnan(false_positive_error)? false_positive_error: 0;
       cout<<"\"false_positive_error\" : "<<false_positive_error<<","<<endl;
       float mean_overlap = filter->GetMeanOverlap(it->first);
+      mean_overlap = !isnan(mean_overlap)? mean_overlap: 0;
       cout<<"\"mean_overlap\" : "<<mean_overlap<<","<<endl;
       float target_overlap = filter->GetTargetOverlap(it->first);
+      target_overlap = !isnan(target_overlap)? target_overlap: 0;
       cout<<"\"target_overlap\" : "<<target_overlap<<","<<endl;
       float union_overlap = filter->GetUnionOverlap(it->first);
+      union_overlap = !isnan(union_overlap)? union_overlap: 0;
       cout<<"\"union_overlap\" : "<<union_overlap<<","<<endl;
       float volume_similarity = filter->GetVolumeSimilarity(it->first);
+      volume_similarity = !isnan(volume_similarity)? volume_similarity: 0;
       cout<<"\"volume_similarity\" : "<<volume_similarity<<endl;
       cout<<"}";
       if(n < size -2){
