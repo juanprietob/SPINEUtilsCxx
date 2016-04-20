@@ -42,33 +42,8 @@ int main( int argc, char ** argv )
 
   if(referenceVolume.compare("") != 0 && comparedVolume.compare("") != 0) {
 
-    if(referenceVolume.compare("") != 0){
-
-        char buffer[] = "/tmp/SPINEXXXXXXX";
-        mktemp(buffer);
-        referenceFileName = string(buffer);
-        referenceFileName.append(".nii.gz");
-
-        ofstream tempFile;
-        tempFile.open (referenceFileName.c_str());
-        tempFile << referenceVolume;
-        tempFile.close();
-        isTempReferenceFile = true;
-    }
-
-    if(comparedVolume.compare("") != 0){
-
-        char buffer[] = "/tmp/SPINEXXXXXXX";
-        mktemp(buffer);
-        comparedFileName = string(buffer);
-        comparedFileName.append(".nii.gz");
-
-        ofstream tempFile;
-        tempFile.open (comparedFileName.c_str());
-        tempFile << comparedVolume;
-        tempFile.close();
-        isTempTargetFile = true;
-    }
+    referenceFileName = referenceVolume;
+    comparedFileName = comparedVolume;
 
   } else {
 
@@ -170,6 +145,13 @@ int main( int argc, char ** argv )
   	    allImageLabels[comparedIt.Get()] = allImageLabels[comparedIt.Get()] + 1;
   	    ++comparedIt;
   	}
+
+    float temporig[3];
+    temporig[0] = 0;
+    temporig[1] = 0;
+    temporig[2] = 0;
+    referenceImage->SetOrigin(temporig);
+    comparedImage->SetOrigin(temporig);
 
 	typedef itk::LabelOverlapMeasuresImageFilter< ImageType > LabelOverlapMeasuresImageFilter;
 	LabelOverlapMeasuresImageFilter::Pointer filter = LabelOverlapMeasuresImageFilter::New();
