@@ -83,7 +83,7 @@ if(NOT ( DEFINED "USE_SYSTEM_${extProjName}" AND "${USE_SYSTEM_${extProjName}}" 
       ${EXTERNAL_PROJECT_OPTIONAL_ARGS}
     )
 
-  set(${proj}_GIT_TAG "a8526829ed22363f4039b3d273101c3542bc2a50")
+  set(${proj}_GIT_TAG "58b53bae5e729b62d374d1c732d8ae9832842f06")
   set(${proj}_REPOSITORY ${git_protocol}://github.com/juanprietob/GDCM.git)
 
 
