@@ -183,12 +183,25 @@ IF(${BUILD_ANONYMIZE})
 
     add_executable(${EXE_NAME}   ${EXE_NAME}.cxx)
     target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})
+    install(TARGETS ${EXE_NAME}
+            RUNTIME
+            DESTINATION bin)
 
     SET(EXE_NAME SPINEAnonymizeReadIDs)
     SET(${EXE_NAME}_LIBRARIES gdcmCommon gdcmDSED gdcmMEXD gdcmcharls gdcmjpeg12 gdcmjpeg8 gdcmuuid socketxx gdcmDICT gdcmIOD gdcmMSFF gdcmexpat gdcmjpeg16 gdcmopenjpeg gdcmzlib)
 
     add_executable(${EXE_NAME}   ${EXE_NAME}.cxx)
     target_link_libraries(${EXE_NAME} ${${EXE_NAME}_LIBRARIES})
+    install(TARGETS ${EXE_NAME}
+            RUNTIME
+            DESTINATION bin)
+    
+    IF(NOT ${USE_SYSTEM_GDCM})
+        message(STATUS "Installing external " ${CMAKE_CURRENT_BINARY_DIR}/../../../GDCM-install/bin/gdcmdumpjson)
+        install(
+            PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/../../bin/gdcmdumpjson
+            DESTINATION bin)
+    ENDIF(NOT ${USE_SYSTEM_GDCM})
 ENDIF(${BUILD_ANONYMIZE})
 
 
