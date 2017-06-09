@@ -82,10 +82,9 @@ if(NOT ( DEFINED "USE_SYSTEM_${extProjName}" AND "${USE_SYSTEM_${extProjName}}" 
       -DGDCM_USE_SYSTEM_OPENSSL:BOOL=ON
       ${EXTERNAL_PROJECT_OPTIONAL_ARGS}
     )
-
-  set(${proj}_GIT_TAG "58b53bae5e729b62d374d1c732d8ae9832842f06")
-  set(${proj}_REPOSITORY ${git_protocol}://github.com/juanprietob/GDCM.git)
-
+  
+  set(${proj}_GIT_TAG "9a5427844b95f7fb78ac654ae2e861d5b661642c")
+  set(${proj}_REPOSITORY https://github.com/SPINEProject/GDCM.git)
 
  SET(GDCM_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_BINARY_DIR}/${proj}-install/include" CACHE TYPE PATH)
  SET(GDCM_LINK_DIRECTORIES "${CMAKE_CURRENT_BINARY_DIR}/${proj}-install/lib" CACHE TYPE PATH)
