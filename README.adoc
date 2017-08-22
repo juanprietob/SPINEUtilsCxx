@@ -17,6 +17,19 @@ You can find the following utilities:
 . Image manipulation:
 .. Resampling: Image ares converted from DICOM or nifti to RAS space.
 
+== Build
+
+You will need g++ v4.x.
+
+If you have another version install (let's say v5), use `update-alternatives` to switch version easily:
+
+```
+sudo apt-get install g++-4.8
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 10
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 5
+```
+
+By default, you will now use g++ 4.8. If you would like to switch, run `sudo update-alternatives --config g++`.
 
 == Requirements:
 ITK, VTK, Xerces, CMake, json-c, gdcm
